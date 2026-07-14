@@ -27,7 +27,7 @@ int main() {
 
 		window.clear({0, 0, 0});
 
-		draw_player_see(win, uni, player);
+		draw_player_see(win, uni, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 0.5);
 
 		window.display();
 	}

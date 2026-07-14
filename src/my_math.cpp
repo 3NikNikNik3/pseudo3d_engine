@@ -3,7 +3,9 @@
 #include <cmath>
 
 namespace pseudo3d_engine {
-	namespace my_math {
-		
+	namespace math {
+		Vec2f Vec2f_from_a(const float a) {
+			return {(float)cos(a), (float)sin(a)};
+		}
 	}
 }

@@ -15,6 +15,14 @@ int main() {
 	Player player({0, 0});
 	Universe uni;
 
+	uni.add_world(1);
+
+	uni.worlds[0].arr[0].from = {1, 1};
+	uni.worlds[0].arr[0].to = {1, -1};
+	uni.worlds[0].arr[0].type = 0;
+	uni.worlds[0].arr[0].draw_type = 1;
+	uni.worlds[0].arr[0].r = uni.worlds[0].arr[0].g = uni.worlds[0].arr[0].b = 255;
+
 	while (window.isOpen()) {
 		while (const std::optional event = window.pollEvent()) {
 			if (event->is<sf::Event::Closed>()) {
@@ -31,4 +39,6 @@ int main() {
 
 		window.display();
 	}
+
+	return 0;
 }

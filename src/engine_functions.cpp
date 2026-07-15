@@ -9,6 +9,6 @@ namespace pseudo3d_engine {
 		const float a_shift = angl_see / (to.y - from.y), start_a = player.a - angl_see / 2;
 
 		for (int i = 0; i <= to.y - from.y; ++i)
-			calc::draw_line(window, uni, player.pos, Vec2f_from_a(start_a + a_shift * i), i);
+			calc::draw_line(window, uni, player.pos, Vec2f::from_a(start_a + a_shift * i), i);
 	}
 }

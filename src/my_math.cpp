@@ -4,7 +4,7 @@
 
 namespace pseudo3d_engine {
 	namespace math {
-		Vec2f Vec2f_from_a(const float a) {
+		Vec2f Vec2f::from_a(const float a) {
 			return {(float)cos(a), (float)sin(a)};
 		}
 	}

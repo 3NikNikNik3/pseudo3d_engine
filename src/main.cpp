@@ -12,16 +12,17 @@ int main() {
 	window.setView(sf::View(sf::FloatRect({0.f, 0.f}, {(float)window.getSize().x, (float)window.getSize().y})));
 
 	draw::Window win(&window);
-	Player player({0, 0});
+	Player player({3, 0});
 	Universe uni;
 
 	uni.add_world(1);
 
 	uni.worlds[0].arr[0].from = {1, 1};
-	uni.worlds[0].arr[0].to = {1, -1};
+	uni.worlds[0].arr[0].a = {0, -2};
 	uni.worlds[0].arr[0].type = 0;
 	uni.worlds[0].arr[0].draw_type = 1;
 	uni.worlds[0].arr[0].r = uni.worlds[0].arr[0].g = uni.worlds[0].arr[0].b = 255;
+	uni.worlds[0].size_now = 1;
 
 	while (window.isOpen()) {
 		while (const std::optional event = window.pollEvent()) {
@@ -35,7 +36,7 @@ int main() {
 
 		window.clear({0, 0, 0});
 
-		draw_player_see(win, uni, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 0.5);
+		draw_player_see(win, uni, 0, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 0.5);
 
 		window.display();
 	}

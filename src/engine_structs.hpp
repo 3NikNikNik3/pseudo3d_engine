@@ -9,7 +9,8 @@ namespace pseudo3d_engine {
 	};
 
 	struct Wall {
-		math::Vec2i from, to;
+		math::Vec2i from;
+		math::Vec2f a;
 
 		// 0 - no transparent, 1 - transparent, 2 - portal, 3 - mirror
 		uchar type: 4;
@@ -18,7 +19,7 @@ namespace pseudo3d_engine {
 
 		union { // addication data
 			// color (*:1)
-			struct { uchar r, g, b, a; };
+			struct { uchar r, g, b, alpha; };
 
 			// (*:2)
 			unsigned int id_texture;
@@ -37,7 +38,7 @@ namespace pseudo3d_engine {
 		};
 	};
 
-	//! to binery
+	//!binery add binery tree with id and t_start,t_end
 	struct World {
 		unsigned int size_real, size_now;
 

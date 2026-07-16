@@ -6,6 +6,8 @@
 
 namespace pseudo3d_engine {
 	namespace calc {
-		void draw_line(draw::Window &window, Universe &uni, math::Vec2f from, math::Vec2f a, int x);
+		bool interact_with_wall(Wall &wall, math::Vec2f from, math::Vec2f a, float &s, float &t);
+
+		void draw_line(draw::Window &window, Universe &uni, int id_world, math::Vec2f from, math::Vec2f a, int x, int y, int size_y);
 	}
 }

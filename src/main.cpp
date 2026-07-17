@@ -34,6 +34,21 @@ int main() {
 			}
 		}
 
+		math::Vec2f move = {0, 0};
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+			move.x += 1;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+			move.x -= 1;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+			move.y += 1;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+			move.y -= 1;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
+			player.a += 0.001;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
+			player.a -= 0.001;
+		player.pos += math::rotation(math::norm(move), player.a) / 1000;
+
 		window.clear({0, 0, 0});
 
 		draw_player_see(win, uni, 0, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 0.5);

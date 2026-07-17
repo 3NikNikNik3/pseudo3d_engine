@@ -26,8 +26,33 @@ namespace pseudo3d_engine {
 			return {x + v.x, y + v.y};
 		}
 
+		Vec2f Vec2f::operator+=(Vec2f v) {
+			x += v.x;
+			y += v.y;
+			return {x, y};
+		}
+
 		Vec2f Vec2f::operator-(Vec2f v) {
 			return {x - v.x, y - v.y};
+		}
+
+		Vec2f Vec2f::operator/(float a) {
+			if (a == 0)
+				return {0, 0};
+			return {x / a, y / a};
+		}
+
+		float len(Vec2f v) {
+			return sqrt(v.x * v.x + v.y * v.y);
+		}
+
+		Vec2f norm(Vec2f v) {
+			return v / len(v);
+		}
+
+		Vec2f rotation(Vec2f v, float a) {
+			return {(float)(v.x * cos(a) + v.y * sin(a)),
+				(float)(-v.x * sin(a) + v.y * cos(a))};
 		}
 	}
 }

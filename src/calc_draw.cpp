@@ -31,7 +31,7 @@ namespace pseudo3d_engine {
 
 		void draw_line(draw::Window &window, Universe &uni, uchar id_world, math::Vec2f from, math::Vec2f a, int x, int y, int size_y) {
 			//!binery add normal search
-			float s_min = 10, s, t;
+			float s_min = 100, s, t;
 			Wall *ans = nullptr;
 
 			for (int i = 0; i < uni.worlds[id_world].walls_size_now; ++i)

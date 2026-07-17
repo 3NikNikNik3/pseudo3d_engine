@@ -25,7 +25,17 @@ namespace pseudo3d_engine {
 
 			Vec2f operator+(Vec2f v);
 
+			Vec2f operator+=(Vec2f v);
+
 			Vec2f operator-(Vec2f v);
+
+			Vec2f operator/(float a);
 		};
+
+		float len(Vec2f v);
+
+		Vec2f norm(Vec2f v);
+
+		Vec2f rotation(Vec2f v, float a);
 	}
 }

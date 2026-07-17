@@ -31,24 +31,24 @@ namespace pseudo3d_engine {
 			unsigned int id_anim_gen;
 
 			// if need more memory (2:1|2|3|4)
-			unsigned int id_add;
+			unsigned int id_add_data;
 
 			// for portal (2:0)
-			struct { uchar id_word; unsigned int id_wall; };
+			struct { unsigned short id_wall; uchar id_world; };
 		};
 	};
 
 	//!binery add binery tree with id and t_start,t_end
 	struct World {
-		unsigned int size_real, size_now;
+		unsigned short walls_size_real, walls_size_now;
 
-		Wall *arr;
+		Wall *walls;
 
-		World(unsigned int size);
+		World(unsigned short size);
 
 		~World();
 
-		void resize(unsigned int size);
+		void resize(unsigned short size);
 	};
 
 	struct Universe {
@@ -59,6 +59,6 @@ namespace pseudo3d_engine {
 
 		~Universe();
 
-		void add_world(unsigned int size);
+		void add_world(unsigned short size);
 	};
 }

@@ -4,25 +4,25 @@
 
 namespace pseudo3d_engine {
 	// World
-	World::World(unsigned int size) : size_real(size), size_now(0) {
-		arr = (Wall*)std::malloc(sizeof(Wall) * size);
-		if (arr == nullptr)
+	World::World(unsigned short size) : walls_size_real(size), walls_size_now(0) {
+		walls = (Wall*)std::malloc(sizeof(Wall) * size);
+		if (walls == nullptr)
 			throw "little memory";
 	}
 
 	World::~World() {
-		std::free(arr);
+		std::free(walls);
 	}
 
-	void World::resize(unsigned int size) {
-		if (size <= size_real)
+	void World::resize(unsigned short size) {
+		if (size <= walls_size_real)
 			return;
-		void *ptr = std::realloc(arr, sizeof(Wall) * size);
+		void *ptr = std::realloc(walls, sizeof(Wall) * size);
 		if (ptr == nullptr)
 			throw "little memory";
-		arr = (Wall*)ptr;
+		walls = (Wall*)ptr;
 
-		size_real = size;
+		walls_size_real = size;
 	}
 
 	// Universe
@@ -32,7 +32,7 @@ namespace pseudo3d_engine {
 		delete[] worlds;
 	}
 
-	void Universe::add_world(unsigned int size) {
+	void Universe::add_world(unsigned short size) {
 		if (worlds == nullptr) {
 			size_worlds = 1;
 			worlds = new World[1]{size};

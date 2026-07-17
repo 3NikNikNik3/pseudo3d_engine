@@ -12,7 +12,7 @@ namespace pseudo3d_engine {
 					s = -delta.x / a.x;
 					t = delta.y / wall.a.y - (delta.x * a.y) / (a.x * wall.a.y);
 
-					return 0 <= t && t <= 1; //!binery add t_start, t_end
+					return 0 <= t && t <= 1 && s >= 0; //!binery add t_start, t_end
 				}
 			} else {
 				const float tmp = a.y * wall.a.x - a.x * wall.a.y;
@@ -25,20 +25,20 @@ namespace pseudo3d_engine {
 				s = (delta.x * wall.a.y - delta.y * wall.a.x) / tmp;
 				t = delta.x / wall.a.x + s;
 
-				return 0 <= t && t <= 1; //!binery add t_start, t_end
+				return 0 <= t && t <= 1 && s >= 0; //!binery add t_start, t_end
 			}
 		}
 
-		void draw_line(draw::Window &window, Universe &uni, int id_world, math::Vec2f from, math::Vec2f a, int x, int y, int size_y) {
+		void draw_line(draw::Window &window, Universe &uni, uchar id_world, math::Vec2f from, math::Vec2f a, int x, int y, int size_y) {
 			//!binery add normal search
 			float s_min = 10, s, t;
 			Wall *ans = nullptr;
 
-			for (int i = 0; i < uni.worlds[id_world].size_now; ++i)
-				if (interact_with_wall(uni.worlds[id_world].arr[i], from, a, s, t))
+			for (int i = 0; i < uni.worlds[id_world].walls_size_now; ++i)
+				if (interact_with_wall(uni.worlds[id_world].walls[i], from, a, s, t))
 					if (s < s_min) {
 						s_min = s;
-						ans = &uni.worlds[id_world].arr[i];
+						ans = &uni.worlds[id_world].walls[i];
 					}
 
 			//!binery add normal switch

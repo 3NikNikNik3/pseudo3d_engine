@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "my_math.hpp"
 
 namespace pseudo3d_engine {
@@ -34,21 +36,21 @@ namespace pseudo3d_engine {
 			unsigned int id_add_data;
 
 			// for portal (2:0)
-			struct { unsigned short id_wall; uchar id_world; };
+			struct { std::uint16_t id_wall; uchar id_world; };
 		};
 	};
 
 	//!binery add binery tree with id and t_start,t_end
 	struct World {
-		unsigned short walls_size_real, walls_size_now;
+		std::uint16_t walls_size_real, walls_size_now;
 
 		Wall *walls;
 
-		World(unsigned short size);
+		World(std::uint16_t size);
 
 		~World();
 
-		void resize(unsigned short size);
+		void resize(std::uint16_t size);
 	};
 
 	struct Universe {
@@ -59,6 +61,6 @@ namespace pseudo3d_engine {
 
 		~Universe();
 
-		void add_world(unsigned short size);
+		void add_world(std::uint16_t size);
 	};
 }

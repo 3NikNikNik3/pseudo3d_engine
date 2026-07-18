@@ -40,17 +40,35 @@ namespace pseudo3d_engine {
 		};
 	};
 
+	struct node {
+		std::uint16_t id_wall;
+		// 0b: 0 - node, 1 - array; 1-7b: id
+		std::uint16_t left, right;
+	};
+
+	struct wall_ptr {
+		float t_start, t_end;
+		std::uint16_t id_wall;
+	};
+
 	//!binery add binery tree with id and t_start,t_end
 	struct World {
-		std::uint16_t walls_size_real, walls_size_now;
+		std::uint16_t walls_size, node_size, wall_ptr_size;
 
 		Wall *walls;
+		node *nodes;
+		wall_ptr *pwalls;
 
 		World(std::uint16_t size);
 
 		~World();
 
-		void resize(std::uint16_t size);
+		// when you use resize_*, you must put data on all new size
+		void resize_walls(std::uint16_t size);
+
+		void resize_nodes(std::uint16_t size);
+
+		void resize_pwalls(std::uint16_t size);
 	};
 
 	struct Universe {

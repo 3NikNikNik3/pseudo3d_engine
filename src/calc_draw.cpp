@@ -23,7 +23,7 @@ namespace pseudo3d_engine {
 				const math::Vec2f delta = from - (math::Vec2f)wall.from;
 
 				s = (delta.x * wall.a.y - delta.y * wall.a.x) / tmp;
-				t = delta.x / wall.a.x + s;
+				t = (delta.x + s * a.x) / wall.a.x;
 
 				return 0 <= t && t <= 1 && s >= 0; //!binery add t_start, t_end
 			}
@@ -34,7 +34,7 @@ namespace pseudo3d_engine {
 			float s_min = 100, s, t;
 			Wall *ans = nullptr;
 
-			for (int i = 0; i < uni.worlds[id_world].walls_size_now; ++i)
+			for (int i = 0; i < uni.worlds[id_world].walls_size; ++i)
 				if (interact_with_wall(uni.worlds[id_world].walls[i], from, a, s, t))
 					if (s < s_min) {
 						s_min = s;

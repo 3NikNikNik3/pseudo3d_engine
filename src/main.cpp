@@ -1,7 +1,5 @@
 #include <SFML/Window.hpp>
 
-#include <iostream>
-
 #include "engine_functions.hpp"
 
 using namespace pseudo3d_engine;
@@ -12,17 +10,69 @@ int main() {
 	window.setView(sf::View(sf::FloatRect({0.f, 0.f}, {(float)window.getSize().x, (float)window.getSize().y})));
 
 	draw::Window win(&window);
-	Player player({0, 0}, 0);
+	Player player({0, 0}, 1.57);
 	Universe uni;
 
-	uni.add_world(1);
+	uni.add_world(8);
 
-	uni.worlds[0].walls[0].from = {1, 1};
-	uni.worlds[0].walls[0].a = {1, -2};
-	uni.worlds[0].walls[0].type = 0;
-	uni.worlds[0].walls[0].draw_type = 1;
-	uni.worlds[0].walls[0].r = uni.worlds[0].walls[0].g = uni.worlds[0].walls[0].b = 255;
-	uni.worlds[0].walls_size_now = 1;
+	uni.worlds[0].walls[0].from = {-1, 1};
+	uni.worlds[0].walls[0].a = {0, 3};
+	uni.worlds[0].walls[1].from = {-1, 4};
+	uni.worlds[0].walls[1].a = {3, 0};
+	uni.worlds[0].walls[2].from = {2, 4};
+	uni.worlds[0].walls[2].a = {0, -3};
+	uni.worlds[0].walls[3].from = {2, 1};
+	uni.worlds[0].walls[3].a = {-1, 0};
+	uni.worlds[0].walls[4].from = {1, 1};
+	uni.worlds[0].walls[4].a = {0, 2};
+	uni.worlds[0].walls[5].from = {1, 3};
+	uni.worlds[0].walls[5].a = {-1, 0};
+	uni.worlds[0].walls[6].from = {0, 3};
+	uni.worlds[0].walls[6].a = {0, -2};
+	uni.worlds[0].walls[7].from = {0, 1};
+	uni.worlds[0].walls[7].a = {-1, 0};
+
+	for (int i = 0; i < 8; ++i) {
+		uni.worlds[0].walls[i].type = 0;
+		uni.worlds[0].walls[i].draw_type = 1;
+		uni.worlds[0].walls[i].r = uni.worlds[0].walls[0].g = uni.worlds[0].walls[0].b = 255;
+	}
+
+	uni.worlds[0].resize_nodes(2);
+
+	uni.worlds[0].nodes[0].id_wall = 4;
+	uni.worlds[0].nodes[0].left = 1;
+	uni.worlds[0].nodes[0].right = (1 << 15);
+	uni.worlds[0].nodes[1].id_wall = 6;
+	uni.worlds[0].nodes[1].left = (1 << 15) | 1;
+	uni.worlds[0].nodes[1].right = (1 << 15) | 2;
+
+	uni.worlds[0].resize_pwalls(3);
+
+uni.worlds[0].pwalls[0].id_wall = 3;
+uni.worlds[0].pwalls[0].t_start = 0;
+uni.worlds[0].pwalls[0].t_end = 1;
+uni.worlds[0].pwalls[1].id_wall = 2;
+uni.worlds[0].pwalls[1].t_start = 0;
+uni.worlds[0].pwalls[1].t_end = 1;
+uni.worlds[0].pwalls[2].id_wall = 2;
+uni.worlds[0].pwalls[2].t_start = 2.0/3;
+uni.worlds[0].pwalls[2].t_end = 1;
+uni.worlds[0].pwalls[4].id_wall = 0;
+uni.worlds[0].pwalls[4].t_start = 0;
+uni.worlds[0].pwalls[4].t_end = 1;
+uni.worlds[0].pwalls[5].id_wall = 1;
+uni.worlds[0].pwalls[5].t_start = 0;
+uni.worlds[0].pwalls[5].t_end = 1.0/3;
+uni.worlds[0].pwalls[6].id_wall = 7;
+uni.worlds[0].pwalls[6].t_start = 0;
+uni.worlds[0].pwalls[6].t_end = 1;
+uni.worlds[0].pwalls[8].id_wall = 1;
+uni.worlds[0].pwalls[8].t_start = 1.0/3;
+uni.worlds[0].pwalls[8].t_end = 2.0/3;
+uni.worlds[0].pwalls[9].id_wall = 5;
+uni.worlds[0].pwalls[9].t_start = 0;
+uni.worlds[0].pwalls[9].t_end = 1;
 
 	while (window.isOpen()) {
 		while (const std::optional event = window.pollEvent()) {
@@ -47,11 +97,11 @@ int main() {
 			player.a += 0.001;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
 			player.a -= 0.001;
-		player.pos += math::rotation(math::norm(move), player.a) / 1000;
+		player.pos += math::rotation(math::norm(move), -player.a) / 1000;
 
 		window.clear({0, 0, 0});
 
-		draw_player_see(win, uni, 0, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 0.5);
+		draw_player_see(win, uni, 0, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 1.57);
 
 		window.display();
 	}

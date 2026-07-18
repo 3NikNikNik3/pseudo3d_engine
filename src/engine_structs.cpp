@@ -53,6 +53,27 @@ namespace pseudo3d_engine {
 				throw "little memory";
 			pwalls = (wall_ptr*)ptr;
 		}
+
+		wall_ptr_size = size;
+	}
+
+	std::uint16_t get_size(World &world, std::uint16_t id, std::uint16_t s) {
+		std::uint16_t sl = s, sr = s;
+
+		if (!(world.nodes[id].left & 0x8000))
+			sl = get_size(world, world.nodes[id].left, s + 1);
+		if (!(world.nodes[id].right & 0x8000))
+			sr = get_size(world, world.nodes[id].right, s + 1);
+
+		if (sl < sr)
+			return sr;
+		return sl;
+	}
+
+	std::uint16_t World::get_size_tree() {
+		if (tree_size == 0)
+			tree_size = get_size(*this, 0, 1);
+		return tree_size;
 	}
 
 	// Universe

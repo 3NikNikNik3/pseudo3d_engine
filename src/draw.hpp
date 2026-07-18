@@ -10,6 +10,6 @@ namespace pseudo3d_engine {
 			sf::RenderWindow *window;
 		};
 
-		void draw_line(Window &win, int x, int y, int size, uchar r, uchar g, uchar b);
+		void draw_line(Window &win, int x, int y, int size, uchar r, uchar g, uchar b, uchar a);
 	}
 }

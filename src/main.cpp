@@ -35,8 +35,11 @@ int main() {
 	for (int i = 0; i < 8; ++i) {
 		uni.worlds[0].walls[i].type = 0;
 		uni.worlds[0].walls[i].draw_type = 1;
-		uni.worlds[0].walls[i].r = uni.worlds[0].walls[0].g = uni.worlds[0].walls[0].b = 255;
+		uni.worlds[0].walls[i].r = uni.worlds[0].walls[0].g = uni.worlds[0].walls[0].b = uni.worlds[0].walls[i].alpha = 255;
 	}
+
+	uni.worlds[0].walls[4].b = 255;
+	uni.worlds[0].walls[6].g = 255;
 
 	uni.worlds[0].resize_nodes(2);
 
@@ -44,8 +47,8 @@ int main() {
 	uni.worlds[0].nodes[0].left = 1;
 	uni.worlds[0].nodes[0].right = (1 << 15);
 	uni.worlds[0].nodes[1].id_wall = 6;
-	uni.worlds[0].nodes[1].left = (1 << 15) | 1;
-	uni.worlds[0].nodes[1].right = (1 << 15) | 2;
+	uni.worlds[0].nodes[1].right = (1 << 15) | 1;
+	uni.worlds[0].nodes[1].left = (1 << 15) | 2;
 
 	uni.worlds[0].resize_pwalls(3);
 
@@ -55,9 +58,12 @@ uni.worlds[0].pwalls[0].t_end = 1;
 uni.worlds[0].pwalls[1].id_wall = 2;
 uni.worlds[0].pwalls[1].t_start = 0;
 uni.worlds[0].pwalls[1].t_end = 1;
-uni.worlds[0].pwalls[2].id_wall = 2;
+uni.worlds[0].pwalls[2].id_wall = 1;
 uni.worlds[0].pwalls[2].t_start = 2.0/3;
 uni.worlds[0].pwalls[2].t_end = 1;
+uni.worlds[0].pwalls[3].id_wall = 4;
+uni.worlds[0].pwalls[3].t_start = 0;
+uni.worlds[0].pwalls[3].t_end = 1;
 uni.worlds[0].pwalls[4].id_wall = 0;
 uni.worlds[0].pwalls[4].t_start = 0;
 uni.worlds[0].pwalls[4].t_end = 1;
@@ -67,12 +73,16 @@ uni.worlds[0].pwalls[5].t_end = 1.0/3;
 uni.worlds[0].pwalls[6].id_wall = 7;
 uni.worlds[0].pwalls[6].t_start = 0;
 uni.worlds[0].pwalls[6].t_end = 1;
+uni.worlds[0].pwalls[7].id_wall = 6;
+uni.worlds[0].pwalls[7].t_start = 0;
+uni.worlds[0].pwalls[7].t_end = 1;
 uni.worlds[0].pwalls[8].id_wall = 1;
 uni.worlds[0].pwalls[8].t_start = 1.0/3;
 uni.worlds[0].pwalls[8].t_end = 2.0/3;
 uni.worlds[0].pwalls[9].id_wall = 5;
 uni.worlds[0].pwalls[9].t_start = 0;
 uni.worlds[0].pwalls[9].t_end = 1;
+uni.worlds[0].pwalls[10].t_end = 0;
 
 	while (window.isOpen()) {
 		while (const std::optional event = window.pollEvent()) {
@@ -101,7 +111,7 @@ uni.worlds[0].pwalls[9].t_end = 1;
 
 		window.clear({0, 0, 0});
 
-		draw_player_see(win, uni, 0, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 1.57);
+		draw_player_see(win, uni, 0, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 1);
 
 		window.display();
 	}

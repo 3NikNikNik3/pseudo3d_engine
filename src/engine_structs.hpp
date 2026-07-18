@@ -42,7 +42,7 @@ namespace pseudo3d_engine {
 
 	struct node {
 		std::uint16_t id_wall;
-		// 0b: 0 - node, 1 - array; 1-7b: id
+		// 0b: 0 - node, 1 - array; 1-15b: id
 		std::uint16_t left, right;
 	};
 
@@ -51,13 +51,12 @@ namespace pseudo3d_engine {
 		std::uint16_t id_wall;
 	};
 
-	//!binery add binery tree with id and t_start,t_end
 	struct World {
-		std::uint16_t walls_size, node_size, wall_ptr_size;
+		std::uint16_t walls_size, node_size, wall_ptr_size, tree_size = 0;
 
 		Wall *walls;
 		node *nodes;
-		wall_ptr *pwalls;
+		wall_ptr *pwalls; // end is t_end == 0
 
 		World(std::uint16_t size);
 
@@ -69,6 +68,8 @@ namespace pseudo3d_engine {
 		void resize_nodes(std::uint16_t size);
 
 		void resize_pwalls(std::uint16_t size);
+
+		std::uint16_t get_size_tree();
 	};
 
 	struct Universe {

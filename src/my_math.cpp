@@ -54,5 +54,9 @@ namespace pseudo3d_engine {
 			return {(float)(v.x * cos(a) + v.y * sin(a)),
 				(float)(-v.x * sin(a) + v.y * cos(a))};
 		}
+
+		float cross(Vec2f v, Vec2f w) {
+			return v.x * w.y - v.y * w.x;
+		}
 	}
 }

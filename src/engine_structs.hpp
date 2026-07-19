@@ -70,6 +70,8 @@ namespace pseudo3d_engine {
 		void resize_pwalls(std::uint16_t size);
 
 		std::uint16_t get_size_tree();
+
+		void make_tree();
 	};
 
 	struct Universe {

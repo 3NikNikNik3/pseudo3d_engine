@@ -42,6 +42,10 @@ namespace pseudo3d_engine {
 			return {x / a, y / a};
 		}
 
+		Vec2f Vec2f::operator*(float a) {
+			return {x * a, y * a};
+		}
+
 		float len(Vec2f v) {
 			return sqrt(v.x * v.x + v.y * v.y);
 		}

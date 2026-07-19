@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <SFML/Window.hpp>
 
 #include "engine_functions.hpp"
@@ -43,6 +45,8 @@ int main() {
 
 	uni.worlds[0].make_tree();
 
+	sf::Clock clock;
+
 	while (window.isOpen()) {
 		while (const std::optional event = window.pollEvent()) {
 			if (event->is<sf::Event::Closed>()) {
@@ -73,6 +77,10 @@ int main() {
 		draw_player_see(win, uni, 0, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 1);
 
 		window.display();
+
+		if (false) { // FPS
+			std::cout << 1 / clock.restart().asSeconds() << std::endl;
+		}
 	}
 
 	return 0;

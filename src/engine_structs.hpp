@@ -11,8 +11,7 @@ namespace pseudo3d_engine {
 	};
 
 	struct Wall {
-		math::Vec2i from;
-		math::Vec2f a;
+		math::Vec2i from, a;
 
 		// 0 - no transparent, 1 - transparent, 2 - portal, 3 - mirror
 		uchar type: 4;

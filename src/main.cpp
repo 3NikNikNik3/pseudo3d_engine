@@ -15,33 +15,12 @@ int main() {
 	Player player({0, 0}, 1.57);
 	Universe uni;
 
-	uni.add_world(8);
-
-	uni.worlds[0].walls[0].from = {-1, 1};
-	uni.worlds[0].walls[0].a = {0, 3};
-	uni.worlds[0].walls[1].from = {-1, 4};
-	uni.worlds[0].walls[1].a = {3, 0};
-	uni.worlds[0].walls[2].from = {2, 4};
-	uni.worlds[0].walls[2].a = {0, -3};
-	uni.worlds[0].walls[3].from = {2, 1};
-	uni.worlds[0].walls[3].a = {-1, 0};
-	uni.worlds[0].walls[4].from = {1, 1};
-	uni.worlds[0].walls[4].a = {0, 2};
-	uni.worlds[0].walls[5].from = {1, 3};
-	uni.worlds[0].walls[5].a = {-1, 0};
-	uni.worlds[0].walls[6].from = {0, 3};
-	uni.worlds[0].walls[6].a = {0, -2};
-	uni.worlds[0].walls[7].from = {0, 1};
-	uni.worlds[0].walls[7].a = {-1, 0};
-
-	for (int i = 0; i < 8; ++i) {
-		uni.worlds[0].walls[i].type = 0;
-		uni.worlds[0].walls[i].draw_type = 1;
-		uni.worlds[0].walls[i].r = uni.worlds[0].walls[0].g = uni.worlds[0].walls[0].b = uni.worlds[0].walls[i].alpha = 255;
+	if (!load_universe_map("../data/test.map", uni)) {
+		window.close();
+		return 1;
 	}
 
-	uni.worlds[0].walls[4].b = 255;
-	uni.worlds[0].walls[6].g = 255;
+	save_universe_map("test.map", uni);
 
 	uni.worlds[0].make_tree();
 

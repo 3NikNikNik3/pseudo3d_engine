@@ -88,7 +88,7 @@ namespace pseudo3d_engine {
 					--i;
 				} else if (!mem[i].flag) { // chose left or right
 					Wall &wall = world.walls[world.nodes[mem[i].id].id_wall];
-					if (math::cross(wall.a, from - (math::Vec2f)wall.from) > 0) {
+					if (math::cross((math::Vec2f)wall.a, from - (math::Vec2f)wall.from) > 0) {
 						mem[i].flag = 1;
 
 						mem[i + 1].id = world.nodes[mem[i].id].left;

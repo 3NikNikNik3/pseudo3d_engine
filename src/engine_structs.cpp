@@ -152,8 +152,8 @@ namespace pseudo3d_engine {
 			std::uint16_t next = lwalls[now].id_next;
 
 			if (lwalls[now].id_wall != id_middle) {
-				float res_start = math::cross(middle->a, (math::Vec2f)walls[lwalls[now].id_wall].from + walls[lwalls[now].id_wall].a * lwalls[now].t_start - (math::Vec2f)middle->from);
-				float res_end = math::cross(middle->a, (math::Vec2f)walls[lwalls[now].id_wall].from + walls[lwalls[now].id_wall].a * lwalls[now].t_end - (math::Vec2f)middle->from);
+				float res_start = math::cross((math::Vec2f)middle->a, (math::Vec2f)walls[lwalls[now].id_wall].from + (math::Vec2f)walls[lwalls[now].id_wall].a * lwalls[now].t_start - (math::Vec2f)middle->from);
+				float res_end = math::cross((math::Vec2f)middle->a, (math::Vec2f)walls[lwalls[now].id_wall].from + (math::Vec2f)walls[lwalls[now].id_wall].a * lwalls[now].t_end - (math::Vec2f)middle->from);
 
 				if (!res_start && !res_end) {
 					lwalls[now].id_next = buf;
@@ -167,7 +167,7 @@ namespace pseudo3d_engine {
 					++right.len_can;
 				} else { // cut
 					float s, t;
-					calc::interact_with_wall(walls[lwalls[now].id_wall], 0, 1, (math::Vec2f)middle->from, middle->a, s, t);
+					calc::interact_with_wall(walls[lwalls[now].id_wall], 0, 1, (math::Vec2f)middle->from, (math::Vec2f)middle->a, s, t);
 
 					// new wall
 					std::uint16_t new_lwall;

@@ -12,6 +12,8 @@ namespace pseudo3d_engine {
 			Vec2i operator+(Vec2i v);
 
 			Vec2i operator-(Vec2i v);
+
+			Vec2i operator-=(Vec2i v);
 		};
 
 		struct Vec2f {

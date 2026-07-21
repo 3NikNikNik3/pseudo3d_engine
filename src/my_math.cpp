@@ -13,6 +13,12 @@ namespace pseudo3d_engine {
 			return {x - v.x, y - v.y};
 		}
 
+		Vec2i Vec2i::operator-=(Vec2i v) {
+			x -= v.x;
+			y -= v.y;
+			return *this;
+		}
+
 		// Vec2f
 		Vec2f::Vec2f(float x, float y) : x(x), y(y) {}
 

@@ -43,5 +43,7 @@ namespace pseudo3d_engine {
 		Vec2f rotation(Vec2f v, float a);
 
 		float cross(Vec2f v, Vec2f w);
+
+		float dot(Vec2f v, Vec2f w);
 	}
 }

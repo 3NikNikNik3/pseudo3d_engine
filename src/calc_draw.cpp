@@ -59,6 +59,7 @@ namespace pseudo3d_engine {
 			}
 		}
 
+		// for draw_line
 		struct node_mem {
 			std::uint16_t id;
 			// 0b - left, 1b - right
@@ -70,6 +71,17 @@ namespace pseudo3d_engine {
 			std::uint16_t id_wall;
 			uchar id_world;
 		};
+
+		void change_a_mirror(math::Vec2f &a, math::Vec2f v) {
+			float tmp_len = len(a) * len(v);
+			float tmp_cos = math::dot(a, v) / tmp_len, tmp_sin = math::cross(a, v) / tmp_len;
+
+			v.x = a.x * tmp_cos - a.y * tmp_sin;
+			v.y = a.x * tmp_sin + a.y * tmp_cos;
+
+			a.x = v.x * tmp_cos - v.y * tmp_sin;
+			a.y = v.x * tmp_sin + v.y * tmp_cos;
+		}
 
 		void draw_line(draw::Window &window, Universe &uni, uchar id_world, math::Vec2f from, math::Vec2f a, int x, int y, int size_y) {
 			node_mem *mem = new node_mem[uni.worlds[id_world].get_size_tree() + 1];
@@ -92,13 +104,12 @@ namespace pseudo3d_engine {
 						bool draw = false;
 
 						// add to stack-draw
-						stack_draw[i_stack].s = s_all + s;
+						s_all += s;
+						stack_draw[i_stack].s = s_all;
 						stack_draw[i_stack].t = t;
 						stack_draw[i_stack].id_wall = id_wall;
 						stack_draw[i_stack].id_world = id_world;
 						++i_stack;
-
-						s_all += s;
 
 						// special properties
 						switch (uni.worlds[id_world].walls[id_wall].type) {
@@ -109,6 +120,16 @@ namespace pseudo3d_engine {
 						case 1:
 							from += a * s;
 							++i;
+							break;
+
+						case 2:
+							from += a * s;
+
+							change_a_mirror(a, (math::Vec2f)uni.worlds[id_world].walls[id_wall].a);
+
+							mem[0].id = mem[0].flag = 0;
+
+							i = 1;
 							break;
 						}
 

@@ -341,6 +341,29 @@ namespace pseudo3d_engine {
 		// go
 		make_tree_real(lwalls, lwalls_size_real, lwalls_size_now, walls, arr, 0, arr_size_now, arr_size_real);
 
+		if (!arr[0].type) {
+			std::uint16_t id;
+			arr = (node_calc_tree*)get_new(arr, arr_size_real, arr_size_now, sizeof(node_calc_tree), id);
+
+			arr[id].len_can = arr[0].len_can;
+			arr[id].len = arr[0].len;
+			arr[id].id_list = arr[0].id_list;
+			arr[id].type = 0;
+
+			std::uint16_t id_;
+			arr = (node_calc_tree*)get_new(arr, arr_size_real, arr_size_now, sizeof(node_calc_tree), id_);
+
+			arr[id_].len_can = 0;
+			arr[id_].len = 0;
+			arr[id_].id_list = 0;
+			arr[id_].type = 0;
+
+			arr[0].id_wall = 0;
+			arr[0].id_left = id;
+			arr[0].id_right = id_;
+			arr[0].type = 1;
+		}
+
 		/*// debug info
 		std::cout << arr_size_now << ':' << std::endl;
 		for (int i = 0; i < arr_size_now; ++i) {

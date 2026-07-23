@@ -68,5 +68,9 @@ namespace pseudo3d_engine {
 		float cross(Vec2f v, Vec2f w) {
 			return v.x * w.y - v.y * w.x;
 		}
+
+		float dot(Vec2f v, Vec2f w) {
+			return v.x * w.x + v.y * w.y;
+		}
 	}
 }

@@ -13,16 +13,12 @@ int main() {
 
 	draw::Window win(&window);
 	Player player({0, 0}, 1.57);
-	Universe uni;
 
-	if (!load_universe_map("../data/test.map", uni)) {
+	Universe uni;
+	if (!load_universe("../data/test.mapo", uni)) {
 		window.close();
 		return 1;
 	}
-
-	save_universe_map("test.map", uni);
-
-	uni.worlds[0].make_tree();
 
 	sf::Clock clock;
 

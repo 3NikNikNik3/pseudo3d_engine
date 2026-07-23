@@ -9,4 +9,16 @@ namespace pseudo3d_engine {
 	bool load_universe_map(const char *path, Universe &ans);
 
 	void save_universe_map(const char *path, const Universe &uni);
+
+	bool load_universe_mapb(const char *path, Universe &ans);
+
+	void save_universe_mapb(const char *path, const Universe &uni);
+
+	bool load_universe_mapo(const char *path, Universe &ans);
+
+	void save_universe_mapo(const char *path, const Universe &uni);
+
+	bool load_universe(const char *path, Universe &uni, bool make_tree = true);
+
+	void save_universe(const char *path, const Universe &uni);
 }

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <string.h>
 
 #include "calc_draw.hpp"
 
@@ -180,5 +181,365 @@ namespace pseudo3d_engine {
 		}
 
 		file.close();
+	}
+
+	void to_buf(uchar *buf, unsigned int n) {
+		for (int i = 0; i < 4; ++i) {
+			buf[i] = (n & 0xff);
+			n >>= 8;
+		}
+	}
+
+	unsigned int from_buf_uint(uchar *buf) {
+		unsigned int ans = 0;
+
+		for (int i = 3; i >= 0; --i)
+			ans = ((ans << 8) | buf[i]);
+
+		return ans;
+	}
+
+	void to_buf(uchar *buf, int n) {
+		bool neg = n < 0;
+		if (neg)
+			n = -n;
+
+		for (int i = 0; i < 4; ++i) {
+			buf[i] = (n & 0xff);
+			n >>= 8;
+		}
+
+		buf[3] = (buf[3] << 1) | (uchar)neg;
+	}
+
+	int from_buf_int(uchar *buf) {
+		int ans = buf[3];
+		bool neg = (ans & 1);
+
+		ans >>= 1;
+
+		for (int i = 2; i >= 0; --i)
+			ans = ((ans << 8) | buf[i]);
+
+		if (neg)
+			return -ans;
+		return ans;
+	}
+
+	void to_buf(uchar *buf, std::uint16_t n) {
+		buf[0] = n & 0xff;
+		buf[1] = n >> 8;
+	}
+
+	inline std::uint16_t from_buf_16(uchar *buf) {
+		return (buf[1] << 8) | buf[0];
+	}
+
+	// becouse 0 <= n <= 1
+	// 0x0.ffff = 0x1.0 !
+	void to_buf(uchar *buf, float n) {
+		if (n == 1)
+			buf[0] = buf[1] = 0xff;
+		else
+			to_buf(buf, (std::uint16_t)(n * 0x10000));
+	}
+
+	float from_buf_float(uchar *buf) {
+		std::uint16_t ans = from_buf_16(buf);
+
+		if (ans == 0xffff)
+			return 1.0f;
+		return ans / 0x10000f;
+	}
+
+	bool load_universe_binary(std::ifstream &file, Universe &uni) {
+		uchar *buf = new uchar[20];
+
+		// worlds
+		if (!file.read((char*)buf, 1)) {
+			delete[] buf;
+			print_error_load("no size of worlds");
+		}
+		int size_worlds = buf[0];
+
+		for (int i = 0; i < size_worlds; ++i) {
+			if (!file.read((char*)buf, 2)) {
+				delete[] buf;
+				print_error_load("no size of walls on " << i << " world");
+			}
+			uni.add_world(from_buf_16(buf));
+
+			for (int j = 0; j < uni.worlds[i].walls_size; ++j) {
+				Wall &wall = uni.worlds[i].walls[j];
+
+				if (!file.read((char*)buf, 17)) {
+					delete[] buf;
+					print_error_load("no wall " << j << " on " << i << " world");
+				}
+
+				wall.from.x = from_buf_int(buf);
+				wall.from.y = from_buf_int(buf + 4);
+				wall.a.x = from_buf_int(buf + 8);
+				wall.a.y = from_buf_int(buf + 12);
+				wall.draw_type = (buf[16] & 0xf);
+				wall.type = (buf[16] >> 4);
+
+				switch (wall.draw_type) {
+				case 0:
+					break;
+				case 1:
+					if (!file.read((char*)buf, 4)) {
+						delete[] buf;
+						print_error_load("no color for " << j << " wall on " << i << " world");
+					}
+
+					wall.r = buf[0];
+					wall.g = buf[1];
+					wall.b = buf[2];
+					wall.alpha = buf[3];
+					break;
+
+				default:
+					delete[] buf;
+					print_error_load("don't know " << (int)wall.draw_type << " type of " << j << " wall on " << i << " world");
+				}
+			}
+		}
+
+		delete[] buf;
+		return true;
+	}
+
+	void save_universe_binary(std::ofstream &file, const Universe &uni) {
+		uchar *buf = new uchar[20];
+
+		// worlds
+		buf[0] = uni.size_worlds;
+		file.write((char*)buf, 1);
+
+		for (int i = 0; i < uni.size_worlds; ++i) {
+			to_buf(buf, uni.worlds[i].walls_size);
+			file.write((char*)buf, 2);
+
+			for (int j = 0; j < uni.worlds[i].walls_size; ++j) {
+				Wall &wall = uni.worlds[i].walls[j];
+
+				to_buf(buf, wall.from.x);
+				to_buf(buf + 4, wall.from.y);
+				to_buf(buf + 8, wall.a.x);
+				to_buf(buf + 12, wall.a.y);
+				buf[16] = ((wall.type << 4) | wall.draw_type);
+
+				file.write((char*)buf, 17);
+
+				switch (wall.draw_type) {
+				case 1:
+					buf[0] = wall.r;
+					buf[1] = wall.g;
+					buf[2] = wall.b;
+					buf[3] = wall.alpha;
+
+					file.write((char*)buf, 4);
+					break;
+				}
+			}
+		}
+
+		delete[] buf;
+	}
+
+	void save_universe_mapb(const char *path, const Universe &uni) {
+		std::ofstream file(path, std::ios::binary);
+
+		save_universe_binary(file, uni);
+
+		file.close();
+	}
+
+	bool load_universe_mapb(const char *path, Universe &ans) {
+		std::ifstream file(path, std::ios::binary);
+
+		if (!file.is_open()) {
+			print_error_load("no \"" << path << "\" file");
+		}
+
+		if (load_universe_binary(file, ans)) {
+			file.close();
+			return true;
+		}
+		return false;
+	}
+
+	bool load_universe_mapo(const char *path, Universe &ans) {
+		std::ifstream file(path, std::ios::binary);
+
+		if (!file.is_open()) {
+			print_error_load("no \"" << path << "\" file");
+		}
+
+		if (!load_universe_binary(file, ans)) {
+			return false;
+		}
+
+		uchar *buf = new uchar[30];
+
+		for (int i = 0; i < ans.size_worlds; ++i) {
+			World &world = ans.worlds[i];
+
+			if (!file.read((char*)buf, 2)) {
+				print_error_load("no node_size on " << i << " world");
+			}
+			world.resize_nodes(from_buf_16(buf));
+
+			for (int j = 0; j < world.node_size; ++j) {
+				if (!file.read((char*)buf, 6)) {
+					print_error_load("no " << j << " node on " << i << " world");
+				}
+
+				world.nodes[j].id_wall = from_buf_16(buf);
+				world.nodes[j].left = from_buf_16(buf + 2);
+				world.nodes[j].right = from_buf_16(buf + 4);
+			}
+
+			if (!file.read((char*)buf, 2)) {
+				print_error_load("no wall_ptr_size on " << i << " world");
+			}
+			world.resize_pwalls(from_buf_16(buf));
+
+			for (int j = 0; j < world.wall_ptr_size; ++j) {
+				for (int k = 0; k < 4; ++k) {
+					if (!file.read((char*)buf, 2)) {
+						print_error_load("no " << j << ':' << k << " pwall on " << i << " world");
+					}
+					world.pwalls[j * 4 + k].t_end = from_buf_float(buf);
+
+					if (world.pwalls[j * 4 + k].t_end == 0)
+						break;
+
+					if (!file.read((char*)buf, 4)) {
+						print_error_load("where are full " << j << ':' << k << " pwall on " << i << " world?!");
+					}
+
+					world.pwalls[j * 4 + k].t_start = from_buf_float(buf);
+					world.pwalls[j * 4 + k].id_wall = from_buf_16(buf + 2);
+				}
+			}
+		}
+
+		delete[] buf;
+		file.close();
+		return true;
+	}
+
+	void save_universe_mapo(const char *path, const Universe &uni) {
+		std::ofstream file(path, std::ios::binary);
+
+		save_universe_binary(file, uni);
+
+		uchar *buf = new uchar[30];
+
+		// binary tree
+		for (int i = 0; i < uni.size_worlds; ++i) {
+			World &world = uni.worlds[i];
+
+			to_buf(buf, world.node_size);
+			file.write((char*)buf, 2);
+
+			for (int j = 0; j < world.node_size; ++j) {
+				to_buf(buf, world.nodes[j].id_wall);
+				to_buf(buf + 2, world.nodes[j].left);
+				to_buf(buf + 4, world.nodes[j].right);
+
+				file.write((char*)buf, 6);
+			}
+
+			to_buf(buf, world.wall_ptr_size);
+			file.write((char*)buf, 2);
+
+			for (int j = 0; j < world.wall_ptr_size; ++j) {
+				uchar size = 0;
+				for (int k = 0; k < 4; ++k) {
+					to_buf(buf + 6 * k, world.pwalls[j * 4 + k].t_end);
+
+					if (world.pwalls[j * 4 + k].t_end == 0) {
+						size += 2;
+						break;
+					}
+
+					to_buf(buf + 6 * k + 2, world.pwalls[j * 4 + k].t_start);
+					to_buf(buf + 6 * k + 4, world.pwalls[j * 4 + k].id_wall);
+
+					size += 6;
+				}
+
+				file.write((char*)buf, size);
+			}
+		}
+
+		delete[] buf;
+		file.close();
+	}
+
+	bool load_universe(const char *path, Universe &uni, bool make_tree) {
+		int i = 0;
+		while (path[i]) ++i;
+
+		if (i < 5) {
+			std::cerr << "\033[31mError load\033[39m: don't know type" << std::endl;
+			return false;
+		}
+
+		if (!strcmp(path + i - 4, ".map")) {
+			if (!load_universe_map(path, uni))
+				return false;
+		} else if (!strcmp(path + i - 5, ".mapb")) {
+			if (!load_universe_mapb(path, uni))
+				return false;
+		} else if (!strcmp(path + i - 5, ".mapo")) {
+			if (!load_universe_mapo(path, uni))
+				return false;
+			make_tree = false;
+		} else {
+			std::cerr << "\033[31mError load\033[39m: don't know type" << std::endl;
+			return false;
+		}
+
+		if (make_tree)
+			for (int i = 0; i < uni.size_worlds; ++i)
+				uni.worlds[i].make_tree();
+
+		return true;
+	}
+
+	void save_universe(const char *path, const Universe &uni) {
+		int i = 0;
+		while (path[i]) ++i;
+
+		if (i >= 5) {
+			if (!strcmp(path + i - 4, ".map")) {
+				save_universe_map(path, uni);
+				return;
+			} else if (!strcmp(path + i - 5, ".mapb")) {
+				save_universe_mapb(path, uni);
+				return;
+			} else if (!strcmp(path + i - 5, ".mapo")) {
+				save_universe_mapo(path, uni);
+				return;
+			}
+		}
+
+		char *new_path = new char[i + 4 + 1];
+		for (int j = 0; path[j]; ++j)
+			new_path[j] = path[j];
+
+		new_path[i] = '.';
+		new_path[i + 1] = 'm';
+		new_path[i + 2] = 'a';
+		new_path[i + 3] = 'p';
+		new_path[i + 4] = 0;
+
+		save_universe_map(new_path, uni);
+
+		delete[] new_path;
 	}
 }

@@ -15,7 +15,7 @@ int main() {
 	Player player({0, 0}, 1.57);
 
 	Universe uni;
-	if (!load_universe("../data/test.mapo", uni)) {
+	if (!load_universe("../data/test.map", uni)) {
 		window.close();
 		return 1;
 	}

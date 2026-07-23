@@ -12,7 +12,7 @@ namespace pseudo3d_engine {
 					s = -delta.x / a.x;
 					t = delta.y / wall.a.y - (delta.x * a.y) / (a.x * wall.a.y);
 
-					return t_start <= t && t <= t_end && s > 0;
+					return t_start <= t && t <= t_end && s > EPS;
 				}
 			} else {
 				const float tmp = a.y * wall.a.x - a.x * wall.a.y;
@@ -25,7 +25,7 @@ namespace pseudo3d_engine {
 				s = (delta.x * wall.a.y - delta.y * wall.a.x) / tmp;
 				t = (delta.x + s * a.x) / wall.a.x;
 
-				return t_start <= t && t <= t_end && s > 0;
+				return t_start <= t && t <= t_end && s > EPS;
 			}
 		}
 
@@ -77,6 +77,8 @@ namespace pseudo3d_engine {
 			uchar i_stack = 0;
 			int i = 0;
 
+			float s_all = 0;
+
 			mem[i].id = mem[i].flag = 0;
 
 			World &world = uni.worlds[id_world];
@@ -90,16 +92,23 @@ namespace pseudo3d_engine {
 						bool draw = false;
 
 						// add to stack-draw
-						stack_draw[i_stack].s = s;
+						stack_draw[i_stack].s = s_all + s;
 						stack_draw[i_stack].t = t;
 						stack_draw[i_stack].id_wall = id_wall;
 						stack_draw[i_stack].id_world = id_world;
 						++i_stack;
 
+						s_all += s;
+
 						// special properties
 						switch (uni.worlds[id_world].walls[id_wall].type) {
 						case 0:
 							draw = true;
+							break;
+
+						case 1:
+							from += a * s;
+							++i;
 							break;
 						}
 
@@ -134,6 +143,11 @@ namespace pseudo3d_engine {
 					mem[i].id = world.nodes[mem[i].id].left;
 					mem[i].flag = 0;
 				}
+			}
+
+			// no end-wall
+			while (i_stack--) {
+				real_draw_line(window, uni, stack_draw[i_stack].id_world, stack_draw[i_stack].id_wall, stack_draw[i_stack].s, stack_draw[i_stack].t, x, y, size_y);
 			}
 
 			delete[] mem;

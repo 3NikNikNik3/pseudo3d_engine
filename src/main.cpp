@@ -3,6 +3,7 @@
 #include <SFML/Window.hpp>
 
 #include "engine_functions.hpp"
+#include "engine_phys.hpp"
 
 using namespace pseudo3d_engine;
 
@@ -15,7 +16,7 @@ int main() {
 	Player player({0, 0}, 1.57);
 
 	Universe uni;
-	if (!load_universe("../data/infinity.map", uni)) {
+	if (!load_universe("../data/test.map", uni)) {
 		window.close();
 		return 1;
 	}

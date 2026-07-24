@@ -40,7 +40,7 @@ namespace pseudo3d_engine {
 		return what_see_real(uni.worlds[id_world], from, a, 0, id_wall, s, t);
 	}
 
-	void move(Universe &uni, uchar id_world, MovingObject &obj, math::Vec2f delta, int count) {
+	void move(Universe &uni, MovingObject &obj, math::Vec2f delta, int count) {
 		// delta == {0,0}
 		if (count == 5 || (-EPS <= delta.x && delta.x <= EPS && -EPS <= delta.y && delta.y <= EPS))
 			return;
@@ -48,7 +48,7 @@ namespace pseudo3d_engine {
 		std::uint16_t id_wall;
 		float s;
 
-		if (what_see(uni, id_world, obj.pos, math::norm(delta), &id_wall, &s, nullptr)) {
+		if (what_see(uni, obj.id_world, obj.pos, math::norm(delta), &id_wall, &s, nullptr)) {
 			float delta_len = math::len(delta);
 
 			if (s > delta_len && s > SIZE_WALL)
@@ -62,11 +62,11 @@ namespace pseudo3d_engine {
 					delta *= (delta_len - s + SIZE_WALL) / delta_len;
 				}
 
-				math::Vec2f a = (math::Vec2f)uni.worlds[id_world].walls[id_wall].a;
+				math::Vec2f a = (math::Vec2f)uni.worlds[obj.id_world].walls[id_wall].a;
 
 				a /= math::len(a);
 
-				move(uni, id_world, obj, a * (math::dot(a, delta)), count + 1);
+				move(uni, obj, a * (math::dot(a, delta)), count + 1);
 			}
 		} else
 			obj.pos += delta;

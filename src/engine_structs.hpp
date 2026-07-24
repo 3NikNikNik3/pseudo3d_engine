@@ -8,6 +8,7 @@ namespace pseudo3d_engine {
 	struct MovingObject {
 		math::Vec2f pos;
 		float a;
+		uchar id_world;
 	};
 
 	struct Wall {

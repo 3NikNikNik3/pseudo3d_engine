@@ -5,7 +5,7 @@
 #include "my_math.hpp"
 
 namespace pseudo3d_engine {
-	struct Player {
+	struct MovingObject {
 		math::Vec2f pos;
 		float a;
 	};

@@ -13,7 +13,7 @@ int main() {
 	window.setView(sf::View(sf::FloatRect({0.f, 0.f}, {(float)window.getSize().x, (float)window.getSize().y})));
 
 	draw::Window win(&window);
-	Player player({0, 0}, 1.57);
+	MovingObject player({0, 0}, 1.57);
 
 	Universe uni;
 	if (!load_universe("../data/test.map", uni)) {
@@ -33,20 +33,20 @@ int main() {
 			}
 		}
 
-		math::Vec2f move = {0, 0};
+		math::Vec2f delta = {0, 0};
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-			move.x += 1;
+			delta.x += 1;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
-			move.x -= 1;
+			delta.x -= 1;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-			move.y += 1;
+			delta.y += 1;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-			move.y -= 1;
+			delta.y -= 1;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
 			player.a += 0.001;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
 			player.a -= 0.001;
-		player.pos += math::rotation(math::norm(move), -player.a) / 1000;
+		move(uni, 0, player, math::rotation(math::norm(delta), -player.a) / 1000);
 
 		window.clear({0, 0, 0});
 

@@ -48,8 +48,24 @@ namespace pseudo3d_engine {
 			return {x / a, y / a};
 		}
 
+		Vec2f Vec2f::operator/=(float a) {
+			if (a == 0) {
+				x = y = 0;
+			} else {
+				x /= a;
+				y /= a;
+			}
+			return *this;
+		}
+
 		Vec2f Vec2f::operator*(float a) {
 			return {x * a, y * a};
+		}
+
+		Vec2f Vec2f::operator*=(float a) {
+			x *= a;
+			y *= a;
+			return *this;
 		}
 
 		float len(Vec2f v) {

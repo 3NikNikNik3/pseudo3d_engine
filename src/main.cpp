@@ -8,6 +8,20 @@
 using namespace pseudo3d_engine;
 
 int main() {
+	/*// debug save/load
+	Universe q;
+	load_universe("../data/test.map", q);
+
+	save_universe("../data/test_.map", q);
+	save_universe("../data/test_.mapb", q);
+
+	Universe w;
+	load_universe("../data/test_.mapb", w);
+
+	save_universe("../data/test_b.map", w);
+
+	return 0;*/
+
 	sf::RenderWindow window(sf::VideoMode({800, 600}), "Test pseudo 3D engine", sf::Style::Default);
 
 	window.setView(sf::View(sf::FloatRect({0.f, 0.f}, {(float)window.getSize().x, (float)window.getSize().y})));

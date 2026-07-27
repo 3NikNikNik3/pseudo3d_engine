@@ -15,9 +15,10 @@ namespace pseudo3d_engine {
 		math::Vec2i from, a;
 
 		// 0 - no transparent, 1 - transparent, 2 - mirror, 3 - portal
-		uchar type: 4;
+		uchar type: 3;
 		// 0 - nothing, 1 - color, 2 - texture, 3 - animation texture, 4 - animation generating
 		uchar draw_type: 4;
+		uchar phys_pass: 1;
 
 		union { // addication data
 			// color (*:1)

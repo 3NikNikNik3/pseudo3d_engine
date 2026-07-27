@@ -51,11 +51,18 @@ namespace pseudo3d_engine {
 		if (what_see(uni, obj.id_world, obj.pos, math::norm(delta), &id_wall, &s, nullptr)) {
 			float delta_len = math::len(delta);
 
+			//! portal: teleport
+
+			// pass
+			if (uni.worlds[obj.id_world].walls[id_wall].phys_pass) {
+				obj.pos += delta;
+				return;
+			}
+
+			// no pass
 			if (s > delta_len && s > SIZE_WALL)
 				obj.pos += delta;
 			else {
-				//! portal: teleport
-
 				if (s > SIZE_WALL) {
 					obj.pos += delta * ((s - SIZE_WALL) / delta_len);
 

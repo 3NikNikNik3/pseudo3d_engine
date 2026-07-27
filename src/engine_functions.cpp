@@ -102,11 +102,19 @@ namespace pseudo3d_engine {
 						}
 
 						uchar tmp0, tmp1;
-						if (!(file >> tmp0 >> tmp1)) {
+						char tmp2;
+						if (!(file >> tmp0 >> tmp1 >> tmp2)) {
 							print_error_load("can not load types of " << j << " wall on " << i << " world");
 						}
 						wall.type = tmp0;
 						wall.draw_type = tmp1;
+						if (tmp2 == 't')
+							wall.phys_pass = 1;
+						else if (tmp2 == 'f')
+							wall.phys_pass = 0;
+						else {
+							print_error_load("don't know phys_pass \"" << tmp2 << "\", \"t\" or \"f\"");
+						}
 
 						if (wall.type > 3) {
 							print_error_load("don't know " << (int)wall.type << " type on " << j << " wall, " << i << " world");
@@ -196,6 +204,11 @@ namespace pseudo3d_engine {
 
 				file << wall.from.x << ' ' << wall.from.y << ' ' << to.x << ' ' << to.y << ' ' << \
 				(int)wall.type << ' ' << (int)wall.draw_type;
+
+				if (wall.phys_pass)
+					file << " t";
+				else
+					file << " f";
 
 				if (wall.type == 3) {
 					if (wall.draw_type) {
@@ -325,8 +338,9 @@ namespace pseudo3d_engine {
 				wall.from.y = from_buf_int(buf + 4);
 				wall.a.x = from_buf_int(buf + 8);
 				wall.a.y = from_buf_int(buf + 12);
-				wall.draw_type = (buf[16] & 0xf);
-				wall.type = (buf[16] >> 4);
+				wall.phys_pass = buf[16] & 1;
+				wall.draw_type = (buf[16] >> 1) & 0xf;
+				wall.type = (buf[16] >> 5);
 
 				add_data *adata;
 				if (wall.type == 3) {
@@ -400,7 +414,7 @@ namespace pseudo3d_engine {
 				to_buf(buf + 4, wall.from.y);
 				to_buf(buf + 8, wall.a.x);
 				to_buf(buf + 12, wall.a.y);
-				buf[16] = ((wall.type << 4) | wall.draw_type);
+				buf[16] = (wall.type << 5) | (wall.draw_type << 1) | wall.phys_pass;
 
 				file.write((char*)buf, 17);
 

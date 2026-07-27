@@ -88,5 +88,9 @@ namespace pseudo3d_engine {
 		float dot(Vec2f v, Vec2f w) {
 			return v.x * w.x + v.y * w.y;
 		}
+
+		float get_angle(Vec2f v, Vec2f w) {
+			return atan2(w.y, w.x) - atan2(v.y, v.x);
+		}
 	}
 }

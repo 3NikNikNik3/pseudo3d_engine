@@ -195,7 +195,7 @@ namespace pseudo3d_engine {
 
 					// new wall
 					std::uint16_t new_lwall;
-					lwalls = (list_wall*)get_new(lwalls, lwalls_size_real, lwalls_size_now, sizeof(lwalls), new_lwall);
+					lwalls = (list_wall*)get_new(lwalls, lwalls_size_real, lwalls_size_now, sizeof(list_wall), new_lwall);
 
 					lwalls[new_lwall].id_wall = lwalls[now].id_wall;
 					lwalls[new_lwall].t_end = lwalls[now].t_end;
@@ -341,7 +341,7 @@ namespace pseudo3d_engine {
 		// reading
 
 		std::uint16_t lwalls_size_real = walls_size, lwalls_size_now = walls_size;
-		list_wall *lwalls = (list_wall*)std::malloc(walls_size * sizeof(list_wall));
+		list_wall *lwalls = (list_wall*)std::malloc((walls_size) * sizeof(list_wall));
 		if (lwalls == nullptr)
 			throw "little memory";
 

@@ -46,15 +46,44 @@ namespace pseudo3d_engine {
 			return;
 
 		std::uint16_t id_wall;
-		float s;
+		float s, t;
 
-		if (what_see(uni, obj.id_world, obj.pos, math::norm(delta), &id_wall, &s, nullptr)) {
+		if (what_see(uni, obj.id_world, obj.pos, math::norm(delta), &id_wall, &s, &t)) {
 			float delta_len = math::len(delta);
 
-			//! portal: teleport
+			Wall &wall = uni.worlds[obj.id_world].walls[id_wall];
+
+			// teleport
+			if (wall.type == 3) {
+				if (s > delta_len)
+					obj.pos += delta;
+				else {
+					delta /= delta_len;
+					delta_len -= s;
+
+					calc::go_to_portal(uni, uni.worlds[obj.id_world], uni.worlds[obj.id_world].walls[id_wall], t, obj.pos, delta);
+
+					Wall *sec_wall;
+					if (wall.draw_type) {
+						add_data &adata = uni.worlds[obj.id_world].adata[wall.id_add_data];
+						sec_wall = &uni.worlds[adata.id_world].walls[adata.id_wall];
+
+						obj.id_world = adata.id_world;
+					} else {
+						sec_wall = &uni.worlds[wall.id_world].walls[wall.id_wall];
+
+						obj.id_world = wall.id_world;
+					}
+					obj.a += math::get_angle((math::Vec2f)wall.a, (math::Vec2f)sec_wall->a);
+
+					obj.pos += delta * delta_len;
+				}
+
+				return;
+			}
 
 			// pass
-			if (uni.worlds[obj.id_world].walls[id_wall].phys_pass) {
+			if (wall.phys_pass) {
 				obj.pos += delta;
 				return;
 			}
@@ -69,7 +98,7 @@ namespace pseudo3d_engine {
 					delta *= (delta_len - s + SIZE_WALL) / delta_len;
 				}
 
-				math::Vec2f a = (math::Vec2f)uni.worlds[obj.id_world].walls[id_wall].a;
+				math::Vec2f a = (math::Vec2f)wall.a;
 
 				a /= math::len(a);
 

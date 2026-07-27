@@ -123,7 +123,7 @@ namespace pseudo3d_engine {
 						std::uint16_t id_wall_portal;
 						uchar id_world_portal;
 						if (wall.type == 3) {
-							if (!(file >> id_wall_portal >> id_world_portal)) {
+							if (!(file >> id_world_portal >> id_wall_portal)) {
 								print_error_load("no id_wall and id_world for portal on " << j << " wall " << i << " world");
 							}
 						}
@@ -214,7 +214,7 @@ namespace pseudo3d_engine {
 					if (wall.draw_type) {
 						add_data &adata = uni.worlds[i].adata[wall.id_add_data];
 
-						file << ' ' << adata.id_wall << ' ' << (int)adata.id_world;
+						file << ' ' << (int)adata.id_world << ' ' << adata.id_wall;
 
 						switch (wall.draw_type) {
 						case 1:
@@ -222,7 +222,7 @@ namespace pseudo3d_engine {
 							break;
 						}
 					} else
-						file << ' ' << wall.id_wall << ' ' << (int)wall.id_world;
+						file << ' ' << (int)wall.id_world << ' ' << wall.id_wall;
 				} else {
 					switch (wall.draw_type) {
 					case 1:

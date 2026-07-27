@@ -49,5 +49,7 @@ namespace pseudo3d_engine {
 		float cross(Vec2f v, Vec2f w);
 
 		float dot(Vec2f v, Vec2f w);
+
+		float get_angle(Vec2f v, Vec2f w);
 	}
 }

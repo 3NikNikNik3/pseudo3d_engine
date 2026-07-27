@@ -96,14 +96,14 @@ namespace pseudo3d_engine {
 
 			mem[i].id = mem[i].flag = 0;
 
-			World &world = uni.worlds[id_world];
+			World *world = &uni.worlds[id_world];
 
 			while (i > -1) {
 				if (mem[i].id & 0x8000) { // array
 					float s, t;
 					std::uint16_t id_wall;
 
-					if (check_node(world.walls, world.pwalls + (((int)(mem[i].id & 0x7fff)) << 2), from, a, id_wall, s, t)) {
+					if (check_node(world->walls, world->pwalls + (((int)(mem[i].id & 0x7fff)) << 2), from, a, id_wall, s, t)) {
 						bool draw = false;
 
 						// add to stack-draw
@@ -115,7 +115,7 @@ namespace pseudo3d_engine {
 						++i_stack;
 
 						// special properties
-						switch (uni.worlds[id_world].walls[id_wall].type) {
+						switch (world->walls[id_wall].type) {
 						case 0:
 							draw = true;
 							break;
@@ -128,11 +128,26 @@ namespace pseudo3d_engine {
 						case 2:
 							from += a * s;
 
-							change_a_mirror(a, (math::Vec2f)uni.worlds[id_world].walls[id_wall].a);
+							change_a_mirror(a, (math::Vec2f)world->walls[id_wall].a);
 
 							mem[0].id = mem[0].flag = 0;
 
 							i = 1;
+							break;
+						case 3:
+							go_to_portal(uni, *world, world->walls[id_wall], t, from, a);
+
+							if (world->walls[id_wall].draw_type)
+								id_world = world->adata[world->walls[id_wall].id_add_data].id_world;
+							else
+								id_world = world->walls[id_wall].id_world;
+							if (id_world >= uni.size_worlds)
+								throw "world isn't";
+							world = &uni.worlds[id_world];
+
+							mem[0].id = mem[0].flag = 0;
+							i = 1;
+
 							break;
 						}
 
@@ -148,23 +163,23 @@ namespace pseudo3d_engine {
 
 					--i;
 				} else if (!mem[i].flag) { // chose left or right
-					Wall &wall = world.walls[world.nodes[mem[i].id].id_wall];
+					Wall &wall = world->walls[world->nodes[mem[i].id].id_wall];
 					if (math::cross((math::Vec2f)wall.a, from - (math::Vec2f)wall.from) > 0) {
 						mem[i].flag = 1;
 
-						mem[i + 1].id = world.nodes[mem[i].id].left;
+						mem[i + 1].id = world->nodes[mem[i].id].left;
 						mem[++i].flag = 0;
 					} else {
 						mem[i].flag = 2;
 
-						mem[i + 1].id = world.nodes[mem[i].id].right;
+						mem[i + 1].id = world->nodes[mem[i].id].right;
 						mem[++i].flag = 0;
 					}
 				} else if (mem[i].flag == 1) { // go right last
-					mem[i].id = world.nodes[mem[i].id].right;
+					mem[i].id = world->nodes[mem[i].id].right;
 					mem[i].flag = 0;
 				} else { // go left last
-					mem[i].id = world.nodes[mem[i].id].left;
+					mem[i].id = world->nodes[mem[i].id].left;
 					mem[i].flag = 0;
 				}
 			}
@@ -175,6 +190,28 @@ namespace pseudo3d_engine {
 			}
 
 			delete[] mem;
+		}
+
+		void go_to_portal(Universe &uni, World &world, Wall &wall, float t, math::Vec2f &from, math::Vec2f &a) {
+			if (wall.type != 3) return;
+
+			Wall *sec_wall;
+			if (wall.draw_type) {
+				if (world.adata[wall.id_add_data].id_wall >= uni.worlds[world.adata[wall.id_add_data].id_world].walls_size)
+					throw "wall isn't";
+				sec_wall = &uni.worlds[world.adata[wall.id_add_data].id_world].walls[world.adata[wall.id_add_data].id_wall];
+			} else {
+				if (uni.worlds[wall.id_world].walls_size <= wall.id_wall)
+					throw "wall isn't";
+				sec_wall = &uni.worlds[wall.id_world].walls[wall.id_wall];
+			}
+
+			const float len = math::len((math::Vec2f)wall.a) * math::len((math::Vec2f)sec_wall->a);
+			const float cos_a = math::dot((math::Vec2f)wall.a, (math::Vec2f)sec_wall->a) / len, sin_a = math::cross((math::Vec2f)wall.a, (math::Vec2f)sec_wall->a) / len;
+
+			a = { a.x * cos_a - a.y * sin_a, a.x * sin_a + a.y * cos_a };
+
+			from = (math::Vec2f)sec_wall->from + (math::Vec2f)sec_wall->a * t;
 		}
 	}
 }

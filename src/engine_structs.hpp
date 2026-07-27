@@ -14,7 +14,7 @@ namespace pseudo3d_engine {
 	struct Wall {
 		math::Vec2i from, a;
 
-		// 0 - no transparent, 1 - transparent, 2 - portal, 3 - mirror
+		// 0 - no transparent, 1 - transparent, 2 - mirror, 3 - portal
 		uchar type: 4;
 		// 0 - nothing, 1 - color, 2 - texture, 3 - animation texture, 4 - animation generating
 		uchar draw_type: 4;
@@ -32,11 +32,30 @@ namespace pseudo3d_engine {
 			// (*:4)
 			unsigned int id_anim_gen;
 
-			// if need more memory (2:1|2|3|4)
+			// if need more memory (3:1|2|3|4)
 			unsigned int id_add_data;
 
-			// for portal (2:0)
+			// for portal (3:0)
 			struct { std::uint16_t id_wall; uchar id_world; };
+		};
+	};
+
+	struct add_data { // sizeof = 8
+		union {
+			struct { // for wall
+				union { // for draw
+					struct { uchar r, g, b, alpha; };
+
+					unsigned int id_texture;
+
+					unsigned int id_anim_texture;
+
+					unsigned int id_anim_gen;
+				};
+
+				// for portal
+				struct { std::uint16_t id_wall; uchar id_world; };
+			};
 		};
 	};
 
@@ -52,13 +71,15 @@ namespace pseudo3d_engine {
 	};
 
 	struct World {
-		std::uint16_t walls_size, node_size, wall_ptr_size, tree_size = 0;
+		std::uint16_t walls_size = 0, node_size = 0, wall_ptr_size = 0, tree_size = 0;
+		std::uint16_t add_data_size = 0;
 
-		Wall *walls;
-		node *nodes;
-		wall_ptr *pwalls; // end is t_end == 0
+		Wall *walls = nullptr;
+		node *nodes = nullptr;
+		wall_ptr *pwalls = nullptr; // end is t_end == 0
+		add_data *adata = nullptr;
 
-		World(std::uint16_t size);
+		World();
 
 		~World();
 
@@ -69,19 +90,21 @@ namespace pseudo3d_engine {
 
 		void resize_pwalls(std::uint16_t size);
 
+		void resize_adata(std::uint16_t size);
+
 		std::uint16_t get_size_tree();
 
 		void make_tree();
 	};
 
 	struct Universe {
-		World *worlds;
-		uchar size_worlds;
+		World *worlds = nullptr;
+		uchar size_worlds = 0;
 
 		Universe();
 
 		~Universe();
 
-		void add_world(std::uint16_t size);
+		void set_worlds(uchar size);
 	};
 }

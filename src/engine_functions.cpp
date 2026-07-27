@@ -53,9 +53,9 @@ namespace pseudo3d_engine {
 			if (!(file >> str))
 				break;
 
-			if (str[0] == '#')
-				continue;
-			else if (str == "worlds:") {
+			if (str[0] == '#') {
+				while (!file.eof() && file.get() != '\n');
+			} else if (str == "worlds:") {
 				if (flags & 1) {
 					print_error_load("worlds have already been");
 				}
@@ -67,6 +67,8 @@ namespace pseudo3d_engine {
 				} else if (size_worlds < 0) {
 					print_error_load("count of worlds is negative");
 				}
+
+				ans.set_worlds(size_worlds);
 
 				for (int i = 0; i < size_worlds; ++i) {
 					ignore_space(file);
@@ -80,7 +82,7 @@ namespace pseudo3d_engine {
 						print_error_load("count of walls on " << i << " world is negative");
 					}
 
-					ans.add_world(count_walls);
+					ans.worlds[i].resize_walls(count_walls);
 
 					for (int j = 0; j < count_walls; ++j) {
 						ignore_space(file);
@@ -108,6 +110,14 @@ namespace pseudo3d_engine {
 
 						if (wall.type > 3) {
 							print_error_load("don't know " << (int)wall.type << " type on " << j << " wall, " << i << " world");
+						}
+
+						std::uint16_t id_wall_portal;
+						uchar id_world_portal;
+						if (wall.type == 3) {
+							if (!(file >> id_wall_portal >> id_world_portal)) {
+								print_error_load("no id_wall and id_world for portal on " << j << " wall " << i << " world");
+							}
 						}
 
 						if (wall.draw_type == 0);
@@ -143,6 +153,23 @@ namespace pseudo3d_engine {
 						} else { //! add more
 							print_error_load("don't know " << (int)wall.draw_type << " draw type on " << j << " wall on " << i << " world");
 						}
+
+						if (wall.type == 3) {
+							if (wall.draw_type) {
+								ans.worlds[i].resize_adata(ans.worlds[i].add_data_size + 1);
+								add_data &adata = ans.worlds[i].adata[ans.worlds[i].add_data_size - 1];
+
+								// if draw_type != 1, then uint = uint, else uint (uchar * 4) = uint (uchar * 4)
+								adata.id_texture = wall.id_texture;
+								adata.id_wall = id_wall_portal;
+								adata.id_world = id_world_portal;
+
+								wall.id_add_data = ans.worlds[i].add_data_size - 1;
+							} else {
+								wall.id_wall = id_wall_portal;
+								wall.id_world = id_world_portal;
+							}
+						}
 					}
 				}
 			} else {
@@ -158,22 +185,37 @@ namespace pseudo3d_engine {
 	void save_universe_map(const char *path, const Universe &uni) {
 		std::ofstream file(path);
 
-		file << "world: " << (int)uni.size_worlds << std::endl;
+		file << "worlds: " << (int)uni.size_worlds << std::endl;
 		for (int i = 0; i < uni.size_worlds; ++i) {
 			file << uni.worlds[i].walls_size << std::endl;
 
 			for (int j = 0; j < uni.worlds[i].walls_size; ++j) {
 				Wall &wall = uni.worlds[i].walls[j];
 
-				file << wall.from.x << ' ' << wall.from.y << ' ' << wall.a.x << ' ' << wall.a.y << ' ' << \
+				Vec2i to = wall.from + wall.a;
+
+				file << wall.from.x << ' ' << wall.from.y << ' ' << to.x << ' ' << to.y << ' ' << \
 				(int)wall.type << ' ' << (int)wall.draw_type;
 
-				switch (wall.draw_type) {
-				case 0:
-					break;
+				if (wall.type == 3) {
+					if (wall.draw_type) {
+						add_data &adata = uni.worlds[i].adata[wall.id_add_data];
 
-				case 1:
-					file << ' ' << (int)wall.r << ' ' << (int)wall.g << ' ' << (int)wall.b << ' ' << (int)wall.alpha;
+						file << ' ' << adata.id_wall << ' ' << (int)adata.id_world;
+
+						switch (wall.draw_type) {
+						case 1:
+							file << ' ' << (int)adata.r << ' ' << (int)adata.g << ' ' << (int)adata.b << ' ' << (int)adata.alpha;
+							break;
+						}
+					} else
+						file << ' ' << wall.id_wall << ' ' << (int)wall.id_world;
+				} else {
+					switch (wall.draw_type) {
+					case 1:
+						file << ' ' << (int)wall.r << ' ' << (int)wall.g << ' ' << (int)wall.b << ' ' << (int)wall.alpha;
+						break;
+					}
 				}
 
 				file << std::endl;
@@ -262,12 +304,14 @@ namespace pseudo3d_engine {
 		}
 		int size_worlds = buf[0];
 
+		uni.set_worlds(size_worlds);
+
 		for (int i = 0; i < size_worlds; ++i) {
 			if (!file.read((char*)buf, 2)) {
 				delete[] buf;
 				print_error_load("no size of walls on " << i << " world");
 			}
-			uni.add_world(from_buf_16(buf));
+			uni.worlds[i].resize_walls(from_buf_16(buf));
 
 			for (int j = 0; j < uni.worlds[i].walls_size; ++j) {
 				Wall &wall = uni.worlds[i].walls[j];
@@ -284,6 +328,27 @@ namespace pseudo3d_engine {
 				wall.draw_type = (buf[16] & 0xf);
 				wall.type = (buf[16] >> 4);
 
+				add_data *adata;
+				if (wall.type == 3) {
+					if (!file.read((char*)buf, 3)) {
+						delete[] buf;
+						print_error_load("no portal data on " << j << " wall on " << i << " world");
+					}
+
+					if (wall.draw_type) {
+						uni.worlds[i].resize_adata(uni.worlds[i].add_data_size + 1);
+						adata = &uni.worlds[i].adata[uni.worlds[i].add_data_size - 1];
+
+						wall.id_add_data = uni.worlds[i].add_data_size - 1;
+
+						adata->id_wall = from_buf_16(buf);
+						adata->id_world = buf[2];
+					} else {
+						wall.id_wall = from_buf_16(buf);
+						wall.id_world = buf[2];
+					}
+				}
+
 				switch (wall.draw_type) {
 				case 0:
 					break;
@@ -293,10 +358,17 @@ namespace pseudo3d_engine {
 						print_error_load("no color for " << j << " wall on " << i << " world");
 					}
 
-					wall.r = buf[0];
-					wall.g = buf[1];
-					wall.b = buf[2];
-					wall.alpha = buf[3];
+					if (wall.type == 3) {
+						adata->r = buf[0];
+						adata->g = buf[1];
+						adata->b = buf[2];
+						adata->alpha = buf[3];
+					} else {
+						wall.r = buf[0];
+						wall.g = buf[1];
+						wall.b = buf[2];
+						wall.alpha = buf[3];
+					}
 					break;
 
 				default:
@@ -332,12 +404,34 @@ namespace pseudo3d_engine {
 
 				file.write((char*)buf, 17);
 
+				add_data *adata;
+				if (wall.type == 3) {
+					if (wall.draw_type) {
+						adata = &uni.worlds[i].adata[wall.id_add_data];
+
+						to_buf(buf, adata->id_wall);
+						buf[2] = adata->id_world;
+					} else {
+						to_buf(buf, wall.id_wall);
+						buf[2] = wall.id_world;
+					}
+
+					file.write((char*)buf, 3);
+				}
+
 				switch (wall.draw_type) {
 				case 1:
-					buf[0] = wall.r;
-					buf[1] = wall.g;
-					buf[2] = wall.b;
-					buf[3] = wall.alpha;
+					if (wall.type == 3) {
+						buf[0] = adata->r;
+						buf[1] = adata->g;
+						buf[2] = adata->b;
+						buf[3] = adata->alpha;
+					} else {
+						buf[0] = wall.r;
+						buf[1] = wall.g;
+						buf[2] = wall.b;
+						buf[3] = wall.alpha;
+					}
 
 					file.write((char*)buf, 4);
 					break;

@@ -53,11 +53,19 @@ namespace pseudo3d_engine {
 			switch (wall.draw_type) {
 			case 0:
 				break;
+
 			case 1:
 				if (wall.type != 3)
 					draw::draw_line(window, x, (int)(size_y / 2.0 * (1 - 1 / s)), (int)(size_y / s), wall.r, wall.g, wall.b, wall.alpha);
 				else
 					draw::draw_line(window, x, (int)(size_y / 2.0 * (1 - 1 / s)), (int)(size_y / s), uni.worlds[id_world].adata[wall.id_add_data].r, uni.worlds[id_world].adata[wall.id_add_data].g, uni.worlds[id_world].adata[wall.id_add_data].b, uni.worlds[id_world].adata[wall.id_add_data].alpha);
+				break;
+
+			case 2:
+				if (wall.type == 3)
+					draw::draw_image(window, x, (int)(size_y / 2.0 * (1 - 1 / s)), (int)(size_y / s), uni.images[uni.worlds[id_world].adata[wall.id_add_data].id_texture], t);
+				else
+					draw::draw_image(window, x, (int)(size_y / 2.0 * (1 - 1 / s)), (int)(size_y / s), uni.images[wall.id_texture], t);
 				break;
 			}
 		}

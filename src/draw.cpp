@@ -1,15 +1,53 @@
 #include "draw.hpp"
 
+#include <iostream>
+
+#define vertex_line_arr sf::Vertex arr[4] = { \
+			{ { (float)x, (float)y } }, \
+			{ { x + 1.0f, (float)y } }, \
+			{ { (float)x, (float)y + size } }, \
+			{ { x + 1.0f, (float)y + size } } };
+
+
 namespace pseudo3d_engine {
 	namespace draw {
+		// Image
+		bool Image::load(const char *path) {
+			for (size = 1; path[size]; ++size);
+
+			this->path = new char[size + 1];
+			for (int i = 0; i <= size; ++i)
+				this->path[i] = path[i];
+
+			sf::Image image;
+			if (!image.loadFromFile(path))
+				return false;
+			return texture.loadFromImage(image);
+		}
+
+		void Image::unload() {
+			delete[] path;
+		}
+
 		void draw_line(Window &win, int x, int y, int size, uchar r, uchar g, uchar b, uchar a) {
-			sf::Vertex arr[4] = {
-				{ { (float)x, (float)y }, { r, g, b, a } },
-				{ { x + 1.0f, (float)y }, { r, g, b, a } },
-				{ { (float)x, (float)y + size }, {r, g, b, a } },
-				{ { x + 1.0f, (float)y + size }, {r, g, b, a } } };
+			vertex_line_arr;
+
+			arr[0].color = arr[1].color = arr[2].color = arr[3].color = { r, g, b, a };
 
 			win.window->draw(arr, 4, sf::PrimitiveType::TriangleStrip);
+		}
+
+		void draw_image(Window &win, int x, int y, int size, Image &img, float t) {
+			vertex_line_arr;
+
+			sf::Vector2f pos = { img.texture.getSize().x * t, (float)img.texture.getSize().y };
+
+			arr[0].texCoords = { pos.x, 0 };
+			arr[1].texCoords = { pos.x + 2, 0 };
+			arr[2].texCoords = { pos.x, pos.y };
+			arr[3].texCoords = { pos.x + 2, pos.y };
+
+			win.window->draw(arr, 4, sf::PrimitiveType::TriangleStrip, &img.texture);
 		}
 	}
 }

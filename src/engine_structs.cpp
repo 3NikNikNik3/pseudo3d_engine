@@ -425,11 +425,34 @@ namespace pseudo3d_engine {
 
 	Universe::~Universe() {
 		delete[] worlds;
+
+		for (int i = 0; i < size_image; ++i)
+			images[i].unload();
+
+		std::free(images);
 	}
 
 	void Universe::set_worlds(uchar size) {
 		worlds = new World[size];
 
 		size_worlds = size;
+	}
+
+	void Universe::resize_images(unsigned int size) {
+		if (size <= size_image)
+			return;
+
+		if (images == nullptr) {
+			images = (draw::Image*)std::malloc(size * sizeof(draw::Image));
+			if (images == nullptr)
+				throw "little memory";
+		} else {
+			void *ptr = std::realloc(images, size * sizeof(draw::Image));
+			if (ptr == nullptr)
+				throw "little memory";
+			images = (draw::Image*)ptr;
+		}
+
+		size_image = size;
 	}
 }

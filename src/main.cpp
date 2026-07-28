@@ -10,13 +10,13 @@ using namespace pseudo3d_engine;
 int main() {
 	/*// debug save/load
 	Universe q;
-	load_universe("../data/test.map", q);
+	std::cout << load_universe("../data/test.map", q) << std::endl;
 
 	save_universe("../data/test_.map", q);
 	save_universe("../data/test_.mapb", q);
 
 	Universe w;
-	load_universe("../data/test_.mapb", w);
+	std::cout << load_universe("../data/test_.mapb", w) << std::endl;
 
 	save_universe("../data/test_b.map", w);
 

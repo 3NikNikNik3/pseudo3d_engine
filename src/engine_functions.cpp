@@ -45,7 +45,7 @@ namespace pseudo3d_engine {
 			print_error_load("file \"" << path << "\" isn't exist");
 		}
 
-		// 0b - worlds
+		// 0b - worlds, 1b - images
 		uchar flags = 0;
 
 		while (!file.eof()) {
@@ -158,6 +158,10 @@ namespace pseudo3d_engine {
 								} else
 									wall.alpha = 255;
 							}
+						} else if (wall.draw_type == 2) {
+							if (!(file >> wall.id_texture)) {
+								print_error_load("id texture on " << j << " wall on " << i << " world isn't number");
+							}
 						} else { //! add more
 							print_error_load("don't know " << (int)wall.draw_type << " draw type on " << j << " wall on " << i << " world");
 						}
@@ -178,6 +182,33 @@ namespace pseudo3d_engine {
 								wall.id_world = id_world_portal;
 							}
 						}
+					}
+				}
+			} else if (str == "images:") {
+				if (flags & 2) {
+					print_error_load("images have already been");
+				}
+				flags |= 2;
+
+				unsigned int count;
+				if (!(file >> count)) {
+					print_error_load("can not load count of image");
+				}
+				ans.resize_images(count);
+
+				for (int i = 0; i < count; ++i) {
+					ignore_space(file);
+					while (file.peek() == '#')
+						file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+					std::string path;
+
+					if (!(file >> path)) {
+						print_error_load("can not load path of " << i << " image");
+					}
+
+					if (!ans.images[i].load(path.c_str())) {
+						print_error_load("error on load " << i << " image from \"" << path << '"');
 					}
 				}
 			} else {
@@ -220,6 +251,10 @@ namespace pseudo3d_engine {
 						case 1:
 							file << ' ' << (int)adata.r << ' ' << (int)adata.g << ' ' << (int)adata.b << ' ' << (int)adata.alpha;
 							break;
+
+						case 2:
+							file << ' ' << adata.id_texture;
+							break;
 						}
 					} else
 						file << ' ' << (int)wall.id_world << ' ' << wall.id_wall;
@@ -228,11 +263,20 @@ namespace pseudo3d_engine {
 					case 1:
 						file << ' ' << (int)wall.r << ' ' << (int)wall.g << ' ' << (int)wall.b << ' ' << (int)wall.alpha;
 						break;
+
+					case 2:
+						file << ' ' << wall.id_texture;
+						break;
 					}
 				}
 
 				file << std::endl;
 			}
+		}
+
+		file << "images: " << uni.size_image << std::endl;
+		for (int i = 0; i < uni.size_image; ++i) {
+			file << uni.images[i].path << std::endl;
 		}
 
 		file.close();
@@ -366,6 +410,7 @@ namespace pseudo3d_engine {
 				switch (wall.draw_type) {
 				case 0:
 					break;
+
 				case 1:
 					if (!file.read((char*)buf, 4)) {
 						delete[] buf;
@@ -385,12 +430,53 @@ namespace pseudo3d_engine {
 					}
 					break;
 
+				case 2:
+					if (!file.read((char*)buf, 4)) {
+						delete[] buf;
+						print_error_load("no id image for " << j << " wall on " << i << " world");
+					}
+
+					if (wall.type == 3)
+						adata->id_texture = from_buf_uint(buf);
+					else
+						wall.id_texture = from_buf_uint(buf);
+					break;
+
 				default:
 					delete[] buf;
 					print_error_load("don't know " << (int)wall.draw_type << " type of " << j << " wall on " << i << " world");
 				}
 			}
 		}
+
+		// images
+		if (!file.read((char*)buf, 4)) {
+			delete[] buf;
+			print_error_load("no count of images");
+		}
+		uni.resize_images(from_buf_uint(buf));
+
+		char *buf_path;
+		int j;
+		if (uni.size_image) {
+			buf_path = new char[257];
+			buf_path[0] = 1;
+		}
+
+		for (int i = 0; i < uni.size_image; ++i) {
+			for (j = 1; buf_path[j - 1]; ++j) {
+				if (!file.read(buf_path + j, 1)) {
+					delete[] buf;
+					delete[] buf_path;
+					print_error_load("uncorrect path on " << i << " image");
+				}
+			}
+
+			uni.images[i].load(buf_path + 1);
+		}
+
+		if (uni.size_image)
+			delete[] buf_path;
 
 		delete[] buf;
 		return true;
@@ -449,9 +535,25 @@ namespace pseudo3d_engine {
 
 					file.write((char*)buf, 4);
 					break;
+
+				case 2:
+					if (wall.type == 3)
+						to_buf(buf, adata->id_texture);
+					else
+						to_buf(buf, wall.id_texture);
+
+					file.write((char*)buf, 4);
+					break;
 				}
 			}
 		}
+
+		// images
+		to_buf(buf, uni.size_image);
+		file.write((char*)buf, 4);
+
+		for (int i = 0; i < uni.size_image; ++i)
+			file.write(uni.images[i].path, uni.images[i].size + 1);
 
 		delete[] buf;
 	}

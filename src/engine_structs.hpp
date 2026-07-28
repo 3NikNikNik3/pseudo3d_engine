@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "my_math.hpp"
+#include "draw.hpp"
 
 namespace pseudo3d_engine {
 	struct MovingObject {
@@ -100,6 +101,9 @@ namespace pseudo3d_engine {
 
 	struct Universe {
 		World *worlds = nullptr;
+		draw::Image *images = nullptr;
+
+		unsigned int size_image = 0;
 		uchar size_worlds = 0;
 
 		Universe();
@@ -107,5 +111,7 @@ namespace pseudo3d_engine {
 		~Universe();
 
 		void set_worlds(uchar size);
+
+		void resize_images(unsigned int size);
 	};
 }

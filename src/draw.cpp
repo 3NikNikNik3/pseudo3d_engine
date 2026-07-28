@@ -42,10 +42,10 @@ namespace pseudo3d_engine {
 
 			sf::Vector2f pos = { img.texture.getSize().x * t, (float)img.texture.getSize().y };
 
-			arr[0].texCoords = { pos.x, 0 };
-			arr[1].texCoords = { pos.x + 2, 0 };
-			arr[2].texCoords = { pos.x, pos.y };
-			arr[3].texCoords = { pos.x + 2, pos.y };
+			arr[0].texCoords = { pos.x - 1, 0 };
+			arr[1].texCoords = { pos.x + 1, 0 };
+			arr[2].texCoords = { pos.x - 1, pos.y };
+			arr[3].texCoords = { pos.x + 1, pos.y };
 
 			win.window->draw(arr, 4, sf::PrimitiveType::TriangleStrip, &img.texture);
 		}

@@ -47,26 +47,99 @@ namespace pseudo3d_engine {
 			return find;
 		}
 
+		void real_draw_line_without_wall(draw::Window &window, Universe &uni, uchar id_world, int x, int y, int size_y) {
+			// down
+			Place *place = &uni.worlds[id_world].down;
+			int tmp;
+			if (place->draw_type) { // sky?!
+				switch (place->type) {
+				case 0:
+					tmp = size_y / 2;
+					draw::draw_line(window, x, y + tmp, size_y - tmp, place->r, place->g, place->b, 255);
+					break;
+				}
+			} else { // place
+				switch (place->type) {
+				case 0:
+					tmp = size_y / 2;
+					draw::draw_line(window, x, y + tmp, size_y - tmp, place->r, place->g, place->b, 255);
+					break;
+				}
+			}
+
+			// up
+			place = &uni.worlds[id_world].up;
+			if (place->draw_type) { // sky
+				switch (place->type) {
+				case 0:
+					draw::draw_line(window, x, y, size_y / 2.0f, place->r, place->g, place->b, 255);
+					break;
+				}
+			} else { // place
+				switch (place->type) {
+				case 0:
+					draw::draw_line(window, x, y, size_y / 2.0f, place->r, place->g, place->b, 255);
+					break;
+				}
+			}
+		}
+
 		void real_draw_line(draw::Window &window, Universe &uni, uchar id_world, std::uint16_t id_wall, float s, float t, int x, int y, int size_y) {
 			Wall &wall = uni.worlds[id_world].walls[id_wall];
 
+			// wall
 			switch (wall.draw_type) {
 			case 0:
 				break;
 
 			case 1:
 				if (wall.type != 3)
-					draw::draw_line(window, x, (int)(size_y / 2.0 * (1 - 1 / s)), (int)(size_y / s), wall.r, wall.g, wall.b, wall.alpha);
+					draw::draw_line(window, x, y + size_y / 2.0 * (1 - 1 / s), size_y / s, wall.r, wall.g, wall.b, wall.alpha);
 				else
-					draw::draw_line(window, x, (int)(size_y / 2.0 * (1 - 1 / s)), (int)(size_y / s), uni.worlds[id_world].adata[wall.id_add_data].r, uni.worlds[id_world].adata[wall.id_add_data].g, uni.worlds[id_world].adata[wall.id_add_data].b, uni.worlds[id_world].adata[wall.id_add_data].alpha);
+					draw::draw_line(window, x, y + size_y / 2.0 * (1 - 1 / s), size_y / s, uni.worlds[id_world].adata[wall.id_add_data].r, uni.worlds[id_world].adata[wall.id_add_data].g, uni.worlds[id_world].adata[wall.id_add_data].b, uni.worlds[id_world].adata[wall.id_add_data].alpha);
 				break;
 
 			case 2:
 				if (wall.type == 3)
-					draw::draw_image(window, x, (int)(size_y / 2.0 * (1 - 1 / s)), (int)(size_y / s), uni.images[uni.worlds[id_world].adata[wall.id_add_data].id_texture], t);
+					draw::draw_image(window, x, y + size_y / 2.0 * (1 - 1 / s), size_y / s, uni.images[uni.worlds[id_world].adata[wall.id_add_data].id_texture], t);
 				else
-					draw::draw_image(window, x, (int)(size_y / 2.0 * (1 - 1 / s)), (int)(size_y / s), uni.images[wall.id_texture], t);
+					draw::draw_image(window, x, y + size_y / 2.0 * (1 - 1 / s), size_y / s, uni.images[wall.id_texture], t);
 				break;
+			}
+
+			// down
+			Place *place = &uni.worlds[id_world].down;
+			int tmp;
+			if (place->draw_type) { // sky?!
+				switch (place->type) {
+				case 0:
+					tmp = (int)(size_y / 2.0f * (1 - 1 / s)) + (int)(size_y / s);
+					draw::draw_line(window, x, y + tmp, size_y - tmp, place->r, place->g, place->b, 255);
+					break;
+				}
+			} else { // place
+				switch (place->type) {
+				case 0:
+					tmp = (int)(size_y / 2.0f * (1 - 1 / s)) + (int)(size_y / s);
+					draw::draw_line(window, x, y + tmp, size_y - tmp, place->r, place->g, place->b, 255);
+					break;
+				}
+			}
+
+			// up
+			place = &uni.worlds[id_world].up;
+			if (place->draw_type) { // sky
+				switch (place->type) {
+				case 0:
+					draw::draw_line(window, x, y, size_y / 2.0f * (1 - 1 / s), place->r, place->g, place->b, 255);
+					break;
+				}
+			} else { // place
+				switch (place->type) {
+				case 0:
+					draw::draw_line(window, x, y, size_y / 2.0f * (1 - 1 / s), place->r, place->g, place->b, 255);
+					break;
+				}
 			}
 		}
 
@@ -191,6 +264,8 @@ namespace pseudo3d_engine {
 					mem[i].flag = 0;
 				}
 			}
+
+			real_draw_line_without_wall(window, uni, id_world, x, y, size_y);
 
 			// no end-wall
 			while (i_stack--) {

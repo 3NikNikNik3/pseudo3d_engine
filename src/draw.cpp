@@ -49,5 +49,16 @@ namespace pseudo3d_engine {
 
 			win.window->draw(arr, 4, sf::PrimitiveType::TriangleStrip, &img.texture);
 		}
+
+		void draw_part_image(Window &win, int x, int y, int size, Image &img, float from_img_x, float from_img_y, float to_img_x, float to_img_y) {
+			vertex_line_arr;
+
+			arr[0].texCoords = { from_img_x, from_img_y };
+			arr[1].texCoords = { to_img_x, from_img_y };
+			arr[2].texCoords = { from_img_x, to_img_y };
+			arr[3].texCoords = { to_img_x, to_img_y };
+
+			win.window->draw(arr, 4, sf::PrimitiveType::TriangleStrip, &img.texture);
+		}
 	}
 }

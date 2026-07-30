@@ -33,9 +33,69 @@ namespace pseudo3d_engine {
 		return q - '0';
 	}
 
-	void ignore_space(std::istream &in) {
+	inline void ignore_space(std::istream &in) {
 		while (in.peek() == ' ' || in.peek() == '\n')
 			in.get();
+	}
+
+	inline void ignore_comment(std::istream &in) {
+		ignore_space(in);
+		while (in.peek() == '#')
+			in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	}
+
+	bool load_color(std::ifstream &file, uchar &r, uchar &g, uchar &b, uchar &a, const char *where) {
+		ignore_space(file);
+		if (file.peek() == '#') { // like #00ffBB(ff)
+			std::string color;
+			file >> color;
+
+			if (color.size() != 7 && color.size() != 9) {
+				print_error_load("strange color on " << where);
+			}
+
+			r = to_uchar(color[1]) * 16 + to_uchar(color[2]);
+			g = to_uchar(color[3]) * 16 + to_uchar(color[4]);
+			b = to_uchar(color[5]) * 16 + to_uchar(color[6]);
+			if (color.size() == 9)
+				a = to_uchar(color[7]) * 16 + to_uchar(color[8]);
+			else
+				a = 255;
+		} else { // like 0 255 187( 255)
+			if (!(file >> r >> g >> b)) {
+				print_error_load("r, g or b on color (" << where << ") isn't number");
+			}
+
+			if (file.peek() != '\n') {
+				if (!(file >> a)) {
+					print_error_load("alpha on color (" << where << " world) isn't number");
+			}
+		} else
+			a = 255;
+		}
+
+		return true;
+	}
+
+	bool load_place_map(std::ifstream &file, Place &place, const char *name) {
+		uchar tmp0, tmp1;
+		if (!(file >> tmp0 >> tmp1)) {
+			print_error_load("type of " << name << " isn't number");
+		} else if (tmp0 > 2) {
+			print_error_load("draw_type of " << name << " is too mach");
+		}
+		place.draw_type = tmp0;
+		place.type = tmp1;
+
+		switch (tmp1) {
+		case 0:
+			if (!load_color(file, place.r, place.g, place.b, tmp1, name))
+				return false;
+			break;
+		default:
+			print_error_load("don't know type of " << name);
+		}
+		return true;
 	}
 
 	bool load_universe_map(const char *path, Universe &ans) {
@@ -71,10 +131,16 @@ namespace pseudo3d_engine {
 				ans.set_worlds(size_worlds);
 
 				for (int i = 0; i < size_worlds; ++i) {
-					ignore_space(file);
-					while (file.peek() == '#')
-						file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+					ignore_comment(file);
 
+					// place
+					if (!load_place_map(file, ans.worlds[i].up, "up-place"))
+						return false;
+
+					if (!load_place_map(file, ans.worlds[i].down, "down-place"))
+						return false;
+
+					// walls
 					int count_walls;
 					if (!(file >> count_walls)) {
 						print_error_load("count of walls on " << i << " world isn't number");
@@ -85,9 +151,7 @@ namespace pseudo3d_engine {
 					ans.worlds[i].resize_walls(count_walls);
 
 					for (int j = 0; j < count_walls; ++j) {
-						ignore_space(file);
-						while (file.peek() == '#')
-							file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+						ignore_comment(file);
 
 						Wall &wall = ans.worlds[i].walls[j];
 
@@ -130,34 +194,8 @@ namespace pseudo3d_engine {
 
 						if (wall.draw_type == 0);
 						else if (wall.draw_type == 1) {
-							ignore_space(file);
-							if (file.peek() == '#') { // like #00ffBB(ff)
-								std::string color;
-								file >> color;
-
-								if (color.size() != 7 && color.size() != 9) {
-									print_error_load("strange color on " << j << " wall on " << i << " world");
-								}
-
-								wall.r = to_uchar(color[1]) * 16 + to_uchar(color[2]);
-								wall.g = to_uchar(color[3]) * 16 + to_uchar(color[4]);
-								wall.b = to_uchar(color[5]) * 16 + to_uchar(color[6]);
-								if (color.size() == 9)
-									wall.alpha = to_uchar(color[7]) * 16 + to_uchar(color[8]);
-								else
-									wall.alpha = 255;
-							} else { // like 0 255 187( 255)
-								if (!(file >> wall.r >> wall.g >> wall.b)) {
-									print_error_load("r, g or b on color (" << i << " wall, " << j << " world) isn't number");
-								}
-
-								if (file.peek() != '\n') {
-									if (!(file >> wall.alpha)) {
-										print_error_load("alpha on color (" << i << " wall, " << j << " world) isn't number");
-									}
-								} else
-									wall.alpha = 255;
-							}
+							if (!load_color(file, wall.r, wall.g, wall.b, wall.alpha, "wall"))
+								return false;
 						} else if (wall.draw_type == 2) {
 							if (!(file >> wall.id_texture)) {
 								print_error_load("id texture on " << j << " wall on " << i << " world isn't number");
@@ -197,9 +235,7 @@ namespace pseudo3d_engine {
 				ans.resize_images(count);
 
 				for (int i = 0; i < count; ++i) {
-					ignore_space(file);
-					while (file.peek() == '#')
-						file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+					ignore_comment(file);
 
 					std::string path;
 
@@ -221,11 +257,27 @@ namespace pseudo3d_engine {
 		return true;
 	}
 
+	void save_place_map(std::ofstream &file, const Place &place) {
+		file << (int)place.draw_type << ' ' << (int)place.type;
+
+		switch (place.type) {
+		case 0:
+			file << ' ' << (int)place.r << ' ' << (int)place.g << ' ' << (int)place.b;
+		}
+
+		file << std::endl;
+	}
+
 	void save_universe_map(const char *path, const Universe &uni) {
 		std::ofstream file(path);
 
 		file << "worlds: " << (int)uni.size_worlds << std::endl;
 		for (int i = 0; i < uni.size_worlds; ++i) {
+			// place
+			save_place_map(file, uni.worlds[i].up);
+			save_place_map(file, uni.worlds[i].down);
+
+			// walls
 			file << uni.worlds[i].walls_size << std::endl;
 
 			for (int j = 0; j < uni.worlds[i].walls_size; ++j) {
@@ -351,6 +403,45 @@ namespace pseudo3d_engine {
 		return ans / 0x10000f;
 	}
 
+	void save_place_binary(std::ofstream &file, uchar *buf, Place &place) {
+		buf[0] = (place.draw_type << 7) | place.type;
+
+		switch (place.type) {
+		case 0:
+			buf[1] = place.r;
+			buf[2] = place.g;
+			buf[3] = place.b;
+
+			file.write((char*)buf, 4);
+			break;
+		}
+	}
+
+	bool load_place_binary(std::ifstream &file, uchar *buf, Place &place) {
+		if (!file.read((char*)buf, 1)) {
+			delete[] buf;
+			print_error_load("no type of place");
+		}
+
+		place.draw_type = buf[0] >> 7;
+		place.type = buf[0] & 0x8f;
+
+		switch (place.type) {
+		case 0:
+			if (!file.read((char *)buf, 3)) {
+				delete[] buf;
+				print_error_load("no color of place");
+			}
+
+			place.r = buf[0];
+			place.g = buf[1];
+			place.b = buf[2];
+			break;
+		}
+
+		return true;
+	}
+
 	bool load_universe_binary(std::ifstream &file, Universe &uni) {
 		uchar *buf = new uchar[20];
 
@@ -364,6 +455,14 @@ namespace pseudo3d_engine {
 		uni.set_worlds(size_worlds);
 
 		for (int i = 0; i < size_worlds; ++i) {
+			// places
+			if (!load_place_binary(file, buf, uni.worlds[i].up))
+				return false;
+
+			if (!load_place_binary(file, buf, uni.worlds[i].down))
+				return false;
+
+			// walls
 			if (!file.read((char*)buf, 2)) {
 				delete[] buf;
 				print_error_load("no size of walls on " << i << " world");
@@ -490,6 +589,11 @@ namespace pseudo3d_engine {
 		file.write((char*)buf, 1);
 
 		for (int i = 0; i < uni.size_worlds; ++i) {
+			// places
+			save_place_binary(file, buf, uni.worlds[i].up);
+			save_place_binary(file, buf, uni.worlds[i].down);
+
+			// walls
 			to_buf(buf, uni.worlds[i].walls_size);
 			file.write((char*)buf, 2);
 

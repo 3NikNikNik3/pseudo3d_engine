@@ -61,6 +61,24 @@ namespace pseudo3d_engine {
 		};
 	};
 
+	struct Place {
+		// 0 - floor, 1 - sky
+		uchar draw_type: 1;
+		// 0 - color, 1 - image, 2 - anim gen
+		uchar type: 7;
+
+		union {
+			// (*:0)
+			struct { uchar r, g, b; };
+
+			// (*:1)
+			unsigned int id_texture;
+
+			// (*:2)
+			unsigned int id_anim_gen;
+		};
+	};
+
 	struct node {
 		std::uint16_t id_wall;
 		// 0b: 0 - node, 1 - array; 1-15b: id
@@ -75,6 +93,8 @@ namespace pseudo3d_engine {
 	struct World {
 		std::uint16_t walls_size = 0, node_size = 0, wall_ptr_size = 0, tree_size = 0;
 		std::uint16_t add_data_size = 0;
+
+		Place up, down;
 
 		Wall *walls = nullptr;
 		node *nodes = nullptr;

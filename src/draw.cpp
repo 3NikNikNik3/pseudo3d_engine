@@ -1,7 +1,5 @@
 #include "draw.hpp"
 
-#include <iostream>
-
 #define vertex_line_arr sf::Vertex arr[4] = { \
 			{ { (float)x, (float)y } }, \
 			{ { x + 1.0f, (float)y } }, \
@@ -29,6 +27,14 @@ namespace pseudo3d_engine {
 			delete[] path;
 		}
 
+		int Image::get_x() {
+			return texture.getSize().x;
+		}
+
+		int Image::get_y() {
+			return texture.getSize().y;
+		}
+
 		void draw_line(Window &win, int x, int y, int size, uchar r, uchar g, uchar b, uchar a) {
 			vertex_line_arr;
 
@@ -50,7 +56,7 @@ namespace pseudo3d_engine {
 			win.window->draw(arr, 4, sf::PrimitiveType::TriangleStrip, &img.texture);
 		}
 
-		void draw_part_image(Window &win, int x, int y, int size, Image &img, float from_img_x, float from_img_y, float to_img_x, float to_img_y) {
+		/*void draw_part_image(Window &win, int x, int y, int size, Image &img, float from_img_x, float from_img_y, float to_img_x, float to_img_y) {
 			vertex_line_arr;
 
 			arr[0].texCoords = { from_img_x, from_img_y };
@@ -59,6 +65,6 @@ namespace pseudo3d_engine {
 			arr[3].texCoords = { to_img_x, to_img_y };
 
 			win.window->draw(arr, 4, sf::PrimitiveType::TriangleStrip, &img.texture);
-		}
+		}*/
 	}
 }

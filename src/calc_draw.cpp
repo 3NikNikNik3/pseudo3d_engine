@@ -1,5 +1,7 @@
 #include "calc_draw.hpp"
 
+#include <iostream>
+
 namespace pseudo3d_engine {
 	namespace calc {
 		bool interact_with_wall(Wall &wall, float t_start, float t_end, math::Vec2f from, math::Vec2f a, float &s, float &t) {
@@ -47,7 +49,30 @@ namespace pseudo3d_engine {
 			return find;
 		}
 
-		void real_draw_line_without_wall(draw::Window &window, Universe &uni, uchar id_world, int x, int y, int size_y) {
+		bool place_go_draw(float &x, float &y, float speed, float &s_x) {
+			if (-EPS <= y - 1 && y - 1 <= EPS)
+				y = 0;
+			if (-EPS <= x - 1 && x - 1 <= EPS)
+				x = 0;
+
+			float x_d = 1 - x;
+			if (x_d * speed + y >= 1)
+				x_d = (1 - y) / speed;
+
+			if (x_d >= s_x) {
+				x += s_x;
+				y += s_x * speed;
+				s_x = 0;
+				return false;
+			}
+
+			x += x_d;
+			y += x_d * speed;
+			s_x -= x_d;
+			return true;
+		}
+
+		void real_draw_line_without_wall(draw::Window &window, Universe &uni, uchar id_world, int x, int y, int size_y, math::Vec2f from, float tan) {
 			// down
 			Place *place = &uni.worlds[id_world].down;
 			int tmp;
@@ -84,7 +109,15 @@ namespace pseudo3d_engine {
 			}
 		}
 
-		void real_draw_line(draw::Window &window, Universe &uni, uchar id_world, std::uint16_t id_wall, float s, float t, int x, int y, int size_y) {
+		inline int get_screen_pos(int size_y, float s) {
+			if (s < EPS)
+				return size_y;
+			return (int)(size_y / 2.0f * (1 - 1 / s)) + (int)(size_y / s);
+		}
+
+		#define rotate(what, flag) ((flag) ? (what) : (1-what))
+
+		void real_draw_line(draw::Window &window, Universe &uni, uchar id_world, std::uint16_t id_wall, float s, float t, int x, int y, int size_y, math::Vec2f from, math::Vec2f a, float s_start) {
 			Wall &wall = uni.worlds[id_world].walls[id_wall];
 
 			// wall
@@ -107,8 +140,16 @@ namespace pseudo3d_engine {
 				break;
 			}
 
+			if (s < 1)
+				return;
+			if (s_start < 1) {
+				from += a * (1 - s_start);
+				s_start = 1;
+			}
+
 			// down
-			Place *place = &uni.worlds[id_world].down;
+			Place *place;
+			place = &uni.worlds[id_world].down;
 			int tmp;
 			if (place->draw_type) { // sky?!
 				switch (place->type) {
@@ -118,12 +159,54 @@ namespace pseudo3d_engine {
 					break;
 				}
 			} else { // place
-				switch (place->type) {
-				case 0:
+				if (place->type == 0) {
 					tmp = (int)(size_y / 2.0f * (1 - 1 / s)) + (int)(size_y / s);
 					draw::draw_line(window, x, y + tmp, size_y - tmp, place->r, place->g, place->b, 255);
-					break;
-				}
+				} /*else if (place->type == 1) {
+					//! now 1 = 1 image. Another?
+					if (-EPS >= a.x || a.x >= EPS) {
+						const int size_img_x = uni.images[place->id_texture].get_x(), size_img_y = uni.images[place->id_texture].get_y();
+
+						float a_x = a.x;
+						if (a_x < 0)
+							a_x *= -1;
+
+						math::Vec2f loc_from = from;
+
+						uchar flag = 0;
+						if (a.x < 0) {
+							flag |= 1;
+							loc_from.x *= -1;
+						}
+						if (a.y < 0) {
+							flag |= 2;
+							loc_from.y *= -1;
+						}
+
+						loc_from = { loc_from.x - (int)loc_from.x, loc_from.y - (int)loc_from.y };
+						if (loc_from.x < 0)
+							loc_from.x += 1;
+						if (loc_from.y < 0)
+							loc_from.y += 1;
+						float speed = a.y / a.x, s_loc = (s - s_start) * a_x, s_old = s_loc;
+						math::Vec2f old_from = loc_from;
+
+						if ((flag & 1) || (flag & 2))
+							speed *= -1;
+
+						while (place_go_draw(loc_from.x, loc_from.y, speed, s_loc)) {
+							tmp = get_screen_pos(size_y, s - s_loc / a_x);
+							draw::draw_part_image(window, x, y + tmp, get_screen_pos(size_y, s - s_old / a_x) - tmp, uni.images[place->id_texture], rotate(old_from.x, flag & 1) * size_img_x, rotate(old_from.y, flag & 2) * size_img_y, rotate(loc_from.x, flag & 1) * size_img_x, rotate(loc_from.y, flag & 2) * size_img_y);
+							old_from = from;
+							s_old = s_loc;
+						}
+
+						tmp = get_screen_pos(size_y, s);
+						draw::draw_part_image(window, x, y + tmp, get_screen_pos(size_y, s - s_old / a_x) - tmp, uni.images[place->id_texture], rotate(old_from.x, flag & 1) * size_img_x, rotate(old_from.y, flag & 2) * size_img_y, rotate(loc_from.x, flag & 1) * size_img_x, rotate(loc_from.y, flag & 2) * size_img_y);
+					} else {
+						
+					}
+				}*/
 			}
 
 			// up
@@ -151,7 +234,8 @@ namespace pseudo3d_engine {
 		};
 
 		struct will_draw {
-			float s, t;
+			float s, t, s_start;
+			math::Vec2f from = {0, 0}, a = {0, 0};
 			std::uint16_t id_wall;
 			uchar id_world;
 		};
@@ -188,12 +272,15 @@ namespace pseudo3d_engine {
 						bool draw = false;
 
 						// add to stack-draw
-						s_all += s;
-						stack_draw[i_stack].s = s_all;
+						stack_draw[i_stack].s = s_all + s;
 						stack_draw[i_stack].t = t;
 						stack_draw[i_stack].id_wall = id_wall;
 						stack_draw[i_stack].id_world = id_world;
+						stack_draw[i_stack].from = from;
+						stack_draw[i_stack].s_start = s_all;
+						stack_draw[i_stack].a = a;
 						++i_stack;
+						s_all += s;
 
 						// special properties
 						switch (world->walls[id_wall].type) {
@@ -234,7 +321,7 @@ namespace pseudo3d_engine {
 
 						if (draw || i_stack == MAX_STACK_DRAW) { // draw
 							while (i_stack--) {
-								real_draw_line(window, uni, stack_draw[i_stack].id_world, stack_draw[i_stack].id_wall, stack_draw[i_stack].s, stack_draw[i_stack].t, x, y, size_y);
+								real_draw_line(window, uni, stack_draw[i_stack].id_world, stack_draw[i_stack].id_wall, stack_draw[i_stack].s, stack_draw[i_stack].t, x, y, size_y, stack_draw[i_stack].from, stack_draw[i_stack].a, stack_draw[i_stack].s_start);
 							}
 
 							delete[] mem;
@@ -265,11 +352,11 @@ namespace pseudo3d_engine {
 				}
 			}
 
-			real_draw_line_without_wall(window, uni, id_world, x, y, size_y);
+			real_draw_line_without_wall(window, uni, id_world, x, y, size_y, from, a.y / a.x);
 
 			// no end-wall
 			while (i_stack--) {
-				real_draw_line(window, uni, stack_draw[i_stack].id_world, stack_draw[i_stack].id_wall, stack_draw[i_stack].s, stack_draw[i_stack].t, x, y, size_y);
+				real_draw_line(window, uni, stack_draw[i_stack].id_world, stack_draw[i_stack].id_wall, stack_draw[i_stack].s, stack_draw[i_stack].t, x, y, size_y, stack_draw[i_stack].from, stack_draw[i_stack].a, stack_draw[i_stack].s_start);
 			}
 
 			delete[] mem;

@@ -21,4 +21,8 @@ namespace pseudo3d_engine {
 	bool load_universe(const char *path, Universe &uni, bool make_tree = true);
 
 	void save_universe(const char *path, const Universe &uni);
+
+	void init();
+
+	void deinit();
 }

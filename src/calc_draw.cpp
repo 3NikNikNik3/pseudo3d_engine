@@ -1,7 +1,5 @@
 #include "calc_draw.hpp"
 
-#include <iostream>
-
 namespace pseudo3d_engine {
 	namespace calc {
 		bool interact_with_wall(Wall &wall, float t_start, float t_end, math::Vec2f from, math::Vec2f a, float &s, float &t) {
@@ -72,7 +70,7 @@ namespace pseudo3d_engine {
 			return true;
 		}
 
-		void real_draw_line_without_wall(draw::Window &window, Universe &uni, uchar id_world, int x, int y, int size_y, math::Vec2f from, float tan) {
+		/*void real_draw_line_without_wall(draw::Window &window, Universe &uni, uchar id_world, int x, int y, int size_y, math::Vec2f from, float tan) {
 			// down
 			Place *place = &uni.worlds[id_world].down;
 			int tmp;
@@ -107,9 +105,9 @@ namespace pseudo3d_engine {
 					break;
 				}
 			}
-		}
+		}*/
 
-		inline int get_screen_pos(int size_y, float s) {
+		/*inline int get_screen_pos(int size_y, float s) {
 			if (s < EPS)
 				return size_y;
 			return (int)(size_y / 2.0f * (1 - 1 / s)) + (int)(size_y / s);
@@ -207,7 +205,7 @@ namespace pseudo3d_engine {
 						
 					}
 				}*/
-			}
+			/*}
 
 			// up
 			place = &uni.worlds[id_world].up;
@@ -224,7 +222,7 @@ namespace pseudo3d_engine {
 					break;
 				}
 			}
-		}
+		}*/
 
 		// for draw_line
 		struct node_mem {
@@ -233,12 +231,12 @@ namespace pseudo3d_engine {
 			std::uint16_t flag = 0;
 		};
 
-		struct will_draw {
+		/*struct will_draw {
 			float s, t, s_start;
 			math::Vec2f from = {0, 0}, a = {0, 0};
 			std::uint16_t id_wall;
 			uchar id_world;
-		};
+		};*/
 
 		void change_a_mirror(math::Vec2f &a, math::Vec2f v) {
 			float tmp_len = len(a) * len(v);
@@ -253,7 +251,7 @@ namespace pseudo3d_engine {
 
 		void draw_line(draw::Window &window, Universe &uni, uchar id_world, math::Vec2f from, math::Vec2f a, int x, int y, int size_y) {
 			node_mem *mem = new node_mem[uni.worlds[id_world].get_size_tree() + 1];
-			will_draw stack_draw[MAX_STACK_DRAW];
+			//will_draw stack_draw[MAX_STACK_DRAW];
 			uchar i_stack = 0;
 			int i = 0;
 
@@ -272,15 +270,16 @@ namespace pseudo3d_engine {
 						bool draw = false;
 
 						// add to stack-draw
-						stack_draw[i_stack].s = s_all + s;
+						/*stack_draw[i_stack].s = s_all + s;
 						stack_draw[i_stack].t = t;
 						stack_draw[i_stack].id_wall = id_wall;
 						stack_draw[i_stack].id_world = id_world;
 						stack_draw[i_stack].from = from;
 						stack_draw[i_stack].s_start = s_all;
-						stack_draw[i_stack].a = a;
-						++i_stack;
+						stack_draw[i_stack].a = a;*/
 						s_all += s;
+						draw::add(x, i_stack, s_all, t, from.x, from.y, a.x, a.y, id_wall, id_world);
+						++i_stack;
 
 						// special properties
 						switch (world->walls[id_wall].type) {
@@ -319,11 +318,7 @@ namespace pseudo3d_engine {
 							break;
 						}
 
-						if (draw || i_stack == MAX_STACK_DRAW) { // draw
-							while (i_stack--) {
-								real_draw_line(window, uni, stack_draw[i_stack].id_world, stack_draw[i_stack].id_wall, stack_draw[i_stack].s, stack_draw[i_stack].t, x, y, size_y, stack_draw[i_stack].from, stack_draw[i_stack].a, stack_draw[i_stack].s_start);
-							}
-
+						if (draw || i_stack == DEPTH - 1) { // stop
 							delete[] mem;
 							return;
 						}
@@ -352,12 +347,13 @@ namespace pseudo3d_engine {
 				}
 			}
 
-			real_draw_line_without_wall(window, uni, id_world, x, y, size_y, from, a.y / a.x);
+			draw::add_none(x, i_stack, from.x, from.y, a.x, a.y, id_world);
+			//real_draw_line_without_wall(window, uni, id_world, x, y, size_y, from, a.y / a.x);
 
-			// no end-wall
+			/*// no end-wall
 			while (i_stack--) {
 				real_draw_line(window, uni, stack_draw[i_stack].id_world, stack_draw[i_stack].id_wall, stack_draw[i_stack].s, stack_draw[i_stack].t, x, y, size_y, stack_draw[i_stack].from, stack_draw[i_stack].a, stack_draw[i_stack].s_start);
-			}
+			}*/
 
 			delete[] mem;
 		}

@@ -22,6 +22,8 @@ int main() {
 
 	return 0;*/
 
+	init();
+
 	sf::RenderWindow window(sf::VideoMode({800, 600}), "Test pseudo 3D engine", sf::Style::Default);
 
 	window.setView(sf::View(sf::FloatRect({0.f, 0.f}, {(float)window.getSize().x, (float)window.getSize().y})));
@@ -72,6 +74,8 @@ int main() {
 			std::cout << 1 / clock.restart().asSeconds() << std::endl;
 		}
 	}
+
+	deinit();
 
 	return 0;
 }

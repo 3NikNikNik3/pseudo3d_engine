@@ -1,6 +1,10 @@
 #include "draw.hpp"
 
 #include <stdlib.h>
+#include <fstream>
+#include <iostream>
+
+#include <GL/glew.h>
 
 #include "engine_structs.hpp"
 
@@ -39,6 +43,96 @@ namespace pseudo3d_engine {
 			return texture.getSize().y;
 		}
 
+		// shader's functions
+		bool load_shader(GLuint type, const char *path, GLuint &ans) {
+			std::ifstream file(path);
+			if (!file.is_open()) {
+				std::cerr << "\033[31mError load shader \"" << path << "\"\033[39m: no file" << std::endl;
+				return false;
+			}
+
+			file.seekg(0, std::ios::end);
+			int len = file.tellg();
+			file.seekg(0, std::ios::beg);
+
+			char *src = new char[len + 1];
+			file.read(src, len);
+			src[len] = '\0';
+
+			file.close();
+
+			ans = glCreateShader(type);
+			glShaderSource(ans, 1, &src, nullptr);
+			glCompileShader(ans);
+
+			delete[] src;
+
+			GLint ret;
+			glGetShaderiv(ans, GL_COMPILE_STATUS, &ret);
+			if (!ret) {
+				char text[512];
+				glGetShaderInfoLog(ans, 512, nullptr, text);
+				std::cerr << "\033[31mError compile shader \"" << path << "\"\033[39m: " << text << std::endl;
+
+				glDeleteShader(ans);
+				return false;
+			}
+
+			return true;
+		}
+
+		bool check_link_prog(GLuint prog) {
+			GLint ret;
+			glGetProgramiv(prog, GL_LINK_STATUS, &ret);
+			if (!ret) {
+				char text[512];
+				glGetProgramInfoLog(prog, 512, nullptr, text);
+				std::cerr << "\033[31mError link program\033[39m: " << text << std::endl;
+				return false;
+			}
+			return true;
+		}
+
+		// global var. for opengl
+		static GLuint prog_color = 0;
+		static GLuint vbo = 0;
+
+		//! delete ../
+		bool init() {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glGenBuffers(1, &vbo);
+
+			GLuint sh_vec;
+			if (!load_shader(GL_VERTEX_SHADER, "../shaders/vertex.vert", sh_vec))
+				return false;
+
+			// prog_color
+			GLuint sh_color;
+			if (!load_shader(GL_FRAGMENT_SHADER, "../shaders/color.frag", sh_color)) {
+				glDeleteShader(sh_vec);
+				return false;
+			}
+
+			prog_color = glCreateProgram();
+			glAttachShader(prog_color, sh_vec);
+			glAttachShader(prog_color, sh_color);
+
+			glLinkProgram(prog_color);
+			if (!check_link_prog(prog_color)) {
+				glDeleteShader(sh_vec);
+				glDeleteShader(sh_color);
+				return false;
+			}
+
+			glDeleteShader(sh_color);
+
+			glDeleteShader(sh_vec);
+
+			return true;
+		}
+
 		// buffer
 		struct buffer_draw {
 			float s, t;
@@ -55,7 +149,7 @@ namespace pseudo3d_engine {
 
 		static uchar *use = nullptr, *time = nullptr;
 
-		void init(unsigned int size_new) {
+		void init_buff(unsigned int size_new) {
 			if (size_new != size) {
 				std::free(buff);
 				std::free(use);
@@ -79,6 +173,9 @@ namespace pseudo3d_engine {
 			std::free(buff);
 			std::free(use);
 			std::free(time);
+
+			glDeleteProgram(prog_color);
+			glDeleteBuffers(1, &vbo);
 		}
 
                 void add(unsigned int x, uchar depth, float s, float t, float from_x, float from_y, float a_x, float a_y, std::uint16_t id_wall, uchar id_world) { 
@@ -112,21 +209,29 @@ namespace pseudo3d_engine {
 			now.time = (~(time[depth >> 3] >> (depth & 0x7))) & 1;
 		}
 
-		inline void draw_wall(Window &win, Universe &uni, int i, int j, int x, int y, int size_y, const buffer_draw &buff_now, sf::Vertex *arr, int len) {
+		// for compact writing
+		struct vec2f {
+			GLfloat x, y;
+		};
+
+		inline void draw_wall(Window &win, Universe &uni, int i, int j, int x, int y, int size_x, int size_y, const buffer_draw &buff_now, vec2f *arr_point, int len) {
 			const Wall &wall = uni.worlds[buff_now.id_world].walls[buff_now.id_wall];
 			if (wall.draw_type) {
 				for (int k = 0; k < len; ++k) {
 					const buffer_draw &buff_just_now = buff[i * size + j + k];
 					const float x_now = x + j + k,
 						    y_now = y + size_y / 2.0 * (1 - 1 / buff_just_now.s);
-					arr[k * 6].position = { x_now, y_now };
-					arr[k * 6 + 1].position = { x_now + 1, y_now };
-					arr[k * 6 + 2].position = { x_now + 1, y_now + size_y / buff_just_now.s };
-					arr[k * 6 + 3].position = { x_now + 1, y_now + size_y / buff_just_now.s };
-					arr[k * 6 + 4].position = { x_now, y_now };
-					arr[k * 6 + 5].position = { x_now, y_now + size_y / buff_just_now.s };
 
-					if (wall.draw_type == 1) {
+					vec2f *arr = arr_point + size_x * 18 * i + size_x * 6 + (j + k) * 6;
+
+					arr[0] = { x_now, y_now };
+					arr[1] = { x_now + 1, y_now };
+					arr[2] = { x_now + 1, y_now + size_y / buff_just_now.s };
+					arr[3] = { x_now + 1, y_now + size_y / buff_just_now.s };
+					arr[4] = { x_now, y_now };
+					arr[5] = { x_now, y_now + size_y / buff_just_now.s };
+
+					/*if (wall.draw_type == 1) {
 						if (wall.type == 3) {
 							arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
 								{ uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].r,
@@ -151,12 +256,26 @@ namespace pseudo3d_engine {
 						arr[k * 6 + 3].texCoords = { pos_x + 0.5f, pos_y };
 						arr[k * 6 + 4].texCoords = { pos_x - 0.5f, 0 };
 						arr[k * 6 + 5].texCoords = { pos_x - 0.5f, pos_y };
-					}
+					}*/
 				}
 
 				if (wall.draw_type == 1) {
-					win.window->draw(arr, len * 6, sf::PrimitiveType::Triangles);
-				} else if (wall.draw_type == 2) {
+					GLint size_uni = glGetUniformLocation(prog_color, "size_screen");
+					GLint color = glGetUniformLocation(prog_color, "color_");
+
+					glUseProgram(prog_color);
+
+					glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+					if (wall.type == 3)
+						glUniform4f(color, uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].r,
+								   uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].g,
+								   uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].b,
+								   uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].alpha);
+					else
+						glUniform4f(color, wall.r, wall.g, wall.b, wall.alpha);
+
+					glDrawArrays(GL_TRIANGLES, size_x * 18 * i + size_x * 6 + j * 6, len * 6);
+				} /*else if (wall.draw_type == 2) {
 					Image *img;
 					if (wall.type == 3)
 						img = &uni.images[uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].id_texture];
@@ -164,11 +283,25 @@ namespace pseudo3d_engine {
 						img = &uni.images[wall.id_texture];
 
 					win.window->draw(arr, len * 6, sf::PrimitiveType::Triangles, &img->texture);
-				}
+				}*/
 			}
 		}
 
                 void draw(Window &win, Universe &uni, int x, int y, int size_x, int size_y) {
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBufferData(GL_ARRAY_BUFFER, DEPTH * size_x * 3 * 6 * 2 * sizeof(GLfloat), nullptr, GL_DYNAMIC_DRAW);
+
+			vec2f *arr_point = (vec2f*)glMapBufferRange(GL_ARRAY_BUFFER, 0, DEPTH * size_x * 3 * 6 * 2 * sizeof(GLfloat), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+
+			if (!arr_point) {
+				while (GLint er = glGetError())
+					std::cerr << "\033[31mOpenGL error\033[39m: " << er << std::endl;
+				return;
+			}
+
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+
 			for (int i = DEPTH - 1; i > -1; --i) {
 				if ((use[i >> 3] >> (i & 0x7)) & 1) {
 					for (int j = 0; j < size;) {
@@ -186,7 +319,6 @@ namespace pseudo3d_engine {
 
 						if (buff[i * size + j].none) {
 							// draw infinity
-							sf::Vertex *arr = new sf::Vertex[len * 6];
 
 							// up-place
 							Place *place = &uni.worlds[buff[i * size + j].id_world].up;
@@ -194,14 +326,16 @@ namespace pseudo3d_engine {
 								const buffer_draw &just_now_buff = buff[i * size + j + k];
 								const float pos_x = x + j + k, pos_y = size_y / 2.0f;
 
-								arr[k * 6].position = { pos_x, (float)y };
-								arr[k * 6 + 1].position = { pos_x, y + pos_y };
-								arr[k * 6 + 2].position = { pos_x + 1, y + pos_y };
-								arr[k * 6 + 3].position = { pos_x + 1, y + pos_y };
-								arr[k * 6 + 4].position = { pos_x + 1, (float)y };
-								arr[k * 6 + 5].position = { pos_x, (float)y };
+								vec2f *arr = arr_point + size_x * 18 * i + (j + k) * 6;
 
-								if (place->draw_type) { // sky
+								arr[0] = { pos_x, (float)y };
+								arr[1] = { pos_x + 1, (float)y };
+								arr[2] = { pos_x + 1, y + pos_y };
+								arr[3] = { pos_x + 1, y + pos_y };
+								arr[4] = { pos_x, (float)y };
+								arr[5] = { pos_x, y + pos_y };
+
+								/*if (place->draw_type) { // sky
 									if (place->type == 0) {
 										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
 											{ place->r, place->g, place->b, 255 };
@@ -211,11 +345,19 @@ namespace pseudo3d_engine {
 										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
 											{ place->r, place->g, place->b, 255 };
 									}
-								}
+								}*/
 							}
 
 							if (place->type == 0) {
-								win.window->draw(arr, len * 6, sf::PrimitiveType::Triangles);
+								GLint size_uni = glGetUniformLocation(prog_color, "size_screen");
+								GLint color = glGetUniformLocation(prog_color, "color_");
+
+								glUseProgram(prog_color);
+
+								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform4f(color, place->r, place->g, place->b, 255);
+
+								glDrawArrays(GL_TRIANGLES, size_x * 18 * i + j * 6, len * 6);
 							}
 
 							// down-place
@@ -224,14 +366,16 @@ namespace pseudo3d_engine {
 								const buffer_draw &just_now_buff = buff[i * size + j + k];
 								const float pos_x = x + j + k, pos_y = size_y / 2;
 
-								arr[k * 6].position = { pos_x, y + pos_y };
-								arr[k * 6 + 1].position = { pos_x, (float)y + size_y };
-								arr[k * 6 + 2].position = { pos_x + 1, (float)y + size_y };
-								arr[k * 6 + 3].position = { pos_x + 1, (float)y + size_y };
-								arr[k * 6 + 4].position = { pos_x + 1, y + pos_y };
-								arr[k * 6 + 5].position = { pos_x, y + pos_y };
+								vec2f *arr = arr_point + size_x * 18 * i + size_x * 12 + (j + k) * 6;
 
-								if (place->draw_type) { // sky?!
+								arr[0] = { pos_x, y + pos_y };
+								arr[1] = { pos_x, (float)y + size_y };
+								arr[2] = { pos_x + 1, (float)y + size_y };
+								arr[3] = { pos_x + 1, (float)y + size_y };
+								arr[4] = { pos_x + 1, y + pos_y };
+								arr[5] = { pos_x, y + pos_y };
+
+								/*if (place->draw_type) { // sky?!
 									if (place->type == 0) {
 										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
 											{ place->r, place->g, place->b, 255 };
@@ -241,21 +385,26 @@ namespace pseudo3d_engine {
 										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
 											{ place->r, place->g, place->b, 255 };
 									}
-								}
+								}*/
 							}
 
 							if (place->type == 0) {
-								win.window->draw(arr, len * 6, sf::PrimitiveType::Triangles);
-							}
+								GLint size_uni = glGetUniformLocation(prog_color, "size_screen");
+								GLint color = glGetUniformLocation(prog_color, "color_");
 
-							delete[] arr;
+								glUseProgram(prog_color);
+
+								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform4f(color, place->r, place->g, place->b, 255);
+
+								glDrawArrays(GL_TRIANGLES, size_x * 18 * i + size_x * 12 + j * 6, len * 6);
+							}
 						} else {
 							// draw normal
-							sf::Vertex *arr = new sf::Vertex[len * 6];
 							const buffer_draw &buff_now = buff[i * size + j];
 
 							// walls
-							draw_wall(win, uni, i, j, x, y, size_y, buff_now, arr, len);
+							draw_wall(win, uni, i, j, x, y, size_x, size_y, buff_now, arr_point, len);
 
 							// up-place
 							Place *place = &uni.worlds[buff[i * size + j].id_world].up;
@@ -263,14 +412,16 @@ namespace pseudo3d_engine {
 								const buffer_draw &just_now_buff = buff[i * size + j + k];
 								const float pos_x = x + j + k, pos_y = size_y / 2.0f * (1 - 1 / just_now_buff.s);
 
-								arr[k * 6].position = { pos_x, (float)y };
-								arr[k * 6 + 1].position = { pos_x, y + pos_y };
-								arr[k * 6 + 2].position = { pos_x + 1, y + pos_y };
-								arr[k * 6 + 3].position = { pos_x + 1, y + pos_y };
-								arr[k * 6 + 4].position = { pos_x + 1, (float)y };
-								arr[k * 6 + 5].position = { pos_x, (float)y };
+								vec2f *arr = arr_point + size_x * 18 * i + (j + k) * 6;
 
-								if (place->draw_type) { // sky
+								arr[0] = { pos_x, (float)y };
+								arr[1] = { pos_x, y + pos_y };
+								arr[2] = { pos_x + 1, y + pos_y };
+								arr[3] = { pos_x + 1, y + pos_y };
+								arr[4] = { pos_x + 1, (float)y };
+								arr[5] = { pos_x, (float)y };
+
+								/*if (place->draw_type) { // sky
 									if (place->type == 0) {
 										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
 											{ place->r, place->g, place->b, 255 };
@@ -280,11 +431,19 @@ namespace pseudo3d_engine {
 										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
 											{ place->r, place->g, place->b, 255 };
 									}
-								}
+								}*/
 							}
 
 							if (place->type == 0) {
-								win.window->draw(arr, len * 6, sf::PrimitiveType::Triangles);
+								GLint size_uni = glGetUniformLocation(prog_color, "size_screen");
+								GLint color = glGetUniformLocation(prog_color, "color_");
+
+								glUseProgram(prog_color);
+
+								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform4f(color, place->r, place->g, place->b, 255);
+
+								glDrawArrays(GL_TRIANGLES, size_x * 18 * i + j * 6, len * 6);
 							}
 
 							// down-place
@@ -293,14 +452,16 @@ namespace pseudo3d_engine {
 								const buffer_draw &just_now_buff = buff[i * size + j + k];
 								const float pos_x = x + j + k, pos_y = (int)(size_y / 2.0f * (1 - 1 / just_now_buff.s)) + (int)(size_y / just_now_buff.s);
 
-								arr[k * 6].position = { pos_x, y + pos_y };
-								arr[k * 6 + 1].position = { pos_x, (float)y + size_y };
-								arr[k * 6 + 2].position = { pos_x + 1, (float)y + size_y };
-								arr[k * 6 + 3].position = { pos_x + 1, (float)y + size_y };
-								arr[k * 6 + 4].position = { pos_x + 1, y + pos_y };
-								arr[k * 6 + 5].position = { pos_x, y + pos_y };
+								vec2f *arr = arr_point + size_x * 18 * i + size_x * 12 + (j + k) * 6;
 
-								if (place->draw_type) { // sky?!
+								arr[0] = { pos_x, y + pos_y };
+								arr[1] = { pos_x, (float)y + size_y };
+								arr[2] = { pos_x + 1, (float)y + size_y };
+								arr[3] = { pos_x + 1, (float)y + size_y };
+								arr[4] = { pos_x + 1, y + pos_y };
+								arr[5] = { pos_x, y + pos_y };
+
+								/*if (place->draw_type) { // sky?!
 									if (place->type == 0) {
 										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
 											{ place->r, place->g, place->b, 255 };
@@ -310,14 +471,20 @@ namespace pseudo3d_engine {
 										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
 											{ place->r, place->g, place->b, 255 };
 									}
-								}
+								}*/
 							}
 
 							if (place->type == 0) {
-								win.window->draw(arr, len * 6, sf::PrimitiveType::Triangles);
-							}
+								GLint size_uni = glGetUniformLocation(prog_color, "size_screen");
+								GLint color = glGetUniformLocation(prog_color, "color_");
 
-							delete[] arr;
+								glUseProgram(prog_color);
+
+								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform4f(color, place->r, place->g, place->b, 255);
+
+								glDrawArrays(GL_TRIANGLES, size_x * 18 * i + size_x * 12 + j * 6, len * 6);
+							}
 						}
 
 						j += len;
@@ -326,6 +493,9 @@ namespace pseudo3d_engine {
 					time[i >> 3] ^= 1 << (i & 0x7);
 				}
 			}
+
+			glUnmapBuffer(GL_ARRAY_BUFFER);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 
 		void draw_line(Window &win, int x, int y, int size, uchar r, uchar g, uchar b, uchar a) {

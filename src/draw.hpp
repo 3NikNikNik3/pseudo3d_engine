@@ -28,7 +28,9 @@ namespace pseudo3d_engine {
 			int get_y();
 		};
 
-		void init(unsigned int size_new);
+		bool init();
+
+		void init_buff(unsigned int size_new);
 
 		void deinit();
 

@@ -22,7 +22,7 @@ namespace pseudo3d_engine {
 
 	void save_universe(const char *path, const Universe &uni);
 
-	void init();
+	bool init();
 
 	void deinit();
 }

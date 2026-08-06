@@ -4,6 +4,8 @@
 #include <fstream>
 #include <string.h>
 
+#include <GL/glew.h>
+
 #include "calc_draw.hpp"
 
 using namespace pseudo3d_engine::math;
@@ -19,7 +21,7 @@ std::istream& operator>>(std::istream &in, uchar &q) {
 
 namespace pseudo3d_engine {
 	void draw_player_see(draw::Window &window, Universe &uni, MovingObject &player, Vec2i from, Vec2i to, float angl_see) {
-		draw::init(to.x - from.x);
+		draw::init_buff(to.x - from.x);
 
 		const float a_shift = angl_see / (to.x - from.x), start_a = player.a - angl_see / 2;
 
@@ -861,8 +863,17 @@ namespace pseudo3d_engine {
 		delete[] new_path;
 	}
 
-	void init() {
+	bool init() {
+		glewExperimental = GL_TRUE;
+		if (glewInit() != GLEW_OK) {
+			std::cerr << "\033[31mError load GLEW\033[39m" << std::endl;
+			return false;
+		}
 
+		if (!draw::init())
+			return false;
+
+		return true;
 	}
 
 	void deinit() {

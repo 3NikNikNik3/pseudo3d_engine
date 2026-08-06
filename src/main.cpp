@@ -22,9 +22,12 @@ int main() {
 
 	return 0;*/
 
-	init();
-
 	sf::RenderWindow window(sf::VideoMode({800, 600}), "Test pseudo 3D engine", sf::Style::Default);
+
+	if (!init()) {
+		deinit();
+		return 1;
+	}
 
 	window.setView(sf::View(sf::FloatRect({0.f, 0.f}, {(float)window.getSize().x, (float)window.getSize().y})));
 

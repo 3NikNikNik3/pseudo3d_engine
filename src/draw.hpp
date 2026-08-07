@@ -2,6 +2,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <GL/glew.h>
+
 #define uchar unsigned char
 
 #define DEPTH 16
@@ -15,8 +17,8 @@ namespace pseudo3d_engine {
 		};
 
 		struct Image {
-			sf::Texture texture;
-			int size;
+			GLuint texture;
+			int size, x, y;
 			char *path;
 
 			bool load(const char *path);

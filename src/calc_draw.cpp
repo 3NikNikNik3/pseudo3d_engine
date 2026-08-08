@@ -70,173 +70,12 @@ namespace pseudo3d_engine {
 			return true;
 		}
 
-		/*void real_draw_line_without_wall(draw::Window &window, Universe &uni, uchar id_world, int x, int y, int size_y, math::Vec2f from, float tan) {
-			// down
-			Place *place = &uni.worlds[id_world].down;
-			int tmp;
-			if (place->draw_type) { // sky?!
-				switch (place->type) {
-				case 0:
-					tmp = size_y / 2;
-					draw::draw_line(window, x, y + tmp, size_y - tmp, place->r, place->g, place->b, 255);
-					break;
-				}
-			} else { // place
-				switch (place->type) {
-				case 0:
-					tmp = size_y / 2;
-					draw::draw_line(window, x, y + tmp, size_y - tmp, place->r, place->g, place->b, 255);
-					break;
-				}
-			}
-
-			// up
-			place = &uni.worlds[id_world].up;
-			if (place->draw_type) { // sky
-				switch (place->type) {
-				case 0:
-					draw::draw_line(window, x, y, size_y / 2.0f, place->r, place->g, place->b, 255);
-					break;
-				}
-			} else { // place
-				switch (place->type) {
-				case 0:
-					draw::draw_line(window, x, y, size_y / 2.0f, place->r, place->g, place->b, 255);
-					break;
-				}
-			}
-		}*/
-
-		/*inline int get_screen_pos(int size_y, float s) {
-			if (s < EPS)
-				return size_y;
-			return (int)(size_y / 2.0f * (1 - 1 / s)) + (int)(size_y / s);
-		}
-
-		#define rotate(what, flag) ((flag) ? (what) : (1-what))
-
-		void real_draw_line(draw::Window &window, Universe &uni, uchar id_world, std::uint16_t id_wall, float s, float t, int x, int y, int size_y, math::Vec2f from, math::Vec2f a, float s_start) {
-			Wall &wall = uni.worlds[id_world].walls[id_wall];
-
-			// wall
-			switch (wall.draw_type) {
-			case 0:
-				break;
-
-			case 1:
-				if (wall.type != 3)
-					draw::draw_line(window, x, y + size_y / 2.0 * (1 - 1 / s), size_y / s, wall.r, wall.g, wall.b, wall.alpha);
-				else
-					draw::draw_line(window, x, y + size_y / 2.0 * (1 - 1 / s), size_y / s, uni.worlds[id_world].adata[wall.id_add_data].r, uni.worlds[id_world].adata[wall.id_add_data].g, uni.worlds[id_world].adata[wall.id_add_data].b, uni.worlds[id_world].adata[wall.id_add_data].alpha);
-				break;
-
-			case 2:
-				if (wall.type == 3)
-					draw::draw_image(window, x, y + size_y / 2.0 * (1 - 1 / s), size_y / s, uni.images[uni.worlds[id_world].adata[wall.id_add_data].id_texture], t);
-				else
-					draw::draw_image(window, x, y + size_y / 2.0 * (1 - 1 / s), size_y / s, uni.images[wall.id_texture], t);
-				break;
-			}
-
-			if (s < 1)
-				return;
-			if (s_start < 1) {
-				from += a * (1 - s_start);
-				s_start = 1;
-			}
-
-			// down
-			Place *place;
-			place = &uni.worlds[id_world].down;
-			int tmp;
-			if (place->draw_type) { // sky?!
-				switch (place->type) {
-				case 0:
-					tmp = (int)(size_y / 2.0f * (1 - 1 / s)) + (int)(size_y / s);
-					draw::draw_line(window, x, y + tmp, size_y - tmp, place->r, place->g, place->b, 255);
-					break;
-				}
-			} else { // place
-				if (place->type == 0) {
-					tmp = (int)(size_y / 2.0f * (1 - 1 / s)) + (int)(size_y / s);
-					draw::draw_line(window, x, y + tmp, size_y - tmp, place->r, place->g, place->b, 255);
-				} /*else if (place->type == 1) {
-					//! now 1 = 1 image. Another?
-					if (-EPS >= a.x || a.x >= EPS) {
-						const int size_img_x = uni.images[place->id_texture].get_x(), size_img_y = uni.images[place->id_texture].get_y();
-
-						float a_x = a.x;
-						if (a_x < 0)
-							a_x *= -1;
-
-						math::Vec2f loc_from = from;
-
-						uchar flag = 0;
-						if (a.x < 0) {
-							flag |= 1;
-							loc_from.x *= -1;
-						}
-						if (a.y < 0) {
-							flag |= 2;
-							loc_from.y *= -1;
-						}
-
-						loc_from = { loc_from.x - (int)loc_from.x, loc_from.y - (int)loc_from.y };
-						if (loc_from.x < 0)
-							loc_from.x += 1;
-						if (loc_from.y < 0)
-							loc_from.y += 1;
-						float speed = a.y / a.x, s_loc = (s - s_start) * a_x, s_old = s_loc;
-						math::Vec2f old_from = loc_from;
-
-						if ((flag & 1) || (flag & 2))
-							speed *= -1;
-
-						while (place_go_draw(loc_from.x, loc_from.y, speed, s_loc)) {
-							tmp = get_screen_pos(size_y, s - s_loc / a_x);
-							draw::draw_part_image(window, x, y + tmp, get_screen_pos(size_y, s - s_old / a_x) - tmp, uni.images[place->id_texture], rotate(old_from.x, flag & 1) * size_img_x, rotate(old_from.y, flag & 2) * size_img_y, rotate(loc_from.x, flag & 1) * size_img_x, rotate(loc_from.y, flag & 2) * size_img_y);
-							old_from = from;
-							s_old = s_loc;
-						}
-
-						tmp = get_screen_pos(size_y, s);
-						draw::draw_part_image(window, x, y + tmp, get_screen_pos(size_y, s - s_old / a_x) - tmp, uni.images[place->id_texture], rotate(old_from.x, flag & 1) * size_img_x, rotate(old_from.y, flag & 2) * size_img_y, rotate(loc_from.x, flag & 1) * size_img_x, rotate(loc_from.y, flag & 2) * size_img_y);
-					} else {
-						
-					}
-				}*/
-			/*}
-
-			// up
-			place = &uni.worlds[id_world].up;
-			if (place->draw_type) { // sky
-				switch (place->type) {
-				case 0:
-					draw::draw_line(window, x, y, size_y / 2.0f * (1 - 1 / s), place->r, place->g, place->b, 255);
-					break;
-				}
-			} else { // place
-				switch (place->type) {
-				case 0:
-					draw::draw_line(window, x, y, size_y / 2.0f * (1 - 1 / s), place->r, place->g, place->b, 255);
-					break;
-				}
-			}
-		}*/
-
 		// for draw_line
 		struct node_mem {
 			std::uint16_t id;
 			// 0b - left, 1b - right
 			std::uint16_t flag = 0;
 		};
-
-		/*struct will_draw {
-			float s, t, s_start;
-			math::Vec2f from = {0, 0}, a = {0, 0};
-			std::uint16_t id_wall;
-			uchar id_world;
-		};*/
 
 		void change_a_mirror(math::Vec2f &a, math::Vec2f v) {
 			float tmp_len = len(a) * len(v);
@@ -251,7 +90,6 @@ namespace pseudo3d_engine {
 
 		void draw_line(draw::Window &window, Universe &uni, uchar id_world, math::Vec2f from, math::Vec2f a, int x, int y, int size_y) {
 			node_mem *mem = new node_mem[uni.worlds[id_world].get_size_tree() + 1];
-			//will_draw stack_draw[MAX_STACK_DRAW];
 			uchar i_stack = 0;
 			int i = 0;
 
@@ -270,13 +108,6 @@ namespace pseudo3d_engine {
 						bool draw = false;
 
 						// add to stack-draw
-						/*stack_draw[i_stack].s = s_all + s;
-						stack_draw[i_stack].t = t;
-						stack_draw[i_stack].id_wall = id_wall;
-						stack_draw[i_stack].id_world = id_world;
-						stack_draw[i_stack].from = from;
-						stack_draw[i_stack].s_start = s_all;
-						stack_draw[i_stack].a = a;*/
 						s_all += s;
 						draw::add(x, i_stack, s_all, t, from.x, from.y, a.x, a.y, id_wall, id_world);
 						++i_stack;
@@ -348,12 +179,6 @@ namespace pseudo3d_engine {
 			}
 
 			draw::add_none(x, i_stack, from.x, from.y, a.x, a.y, id_world);
-			//real_draw_line_without_wall(window, uni, id_world, x, y, size_y, from, a.y / a.x);
-
-			/*// no end-wall
-			while (i_stack--) {
-				real_draw_line(window, uni, stack_draw[i_stack].id_world, stack_draw[i_stack].id_wall, stack_draw[i_stack].s, stack_draw[i_stack].t, x, y, size_y, stack_draw[i_stack].from, stack_draw[i_stack].a, stack_draw[i_stack].s_start);
-			}*/
 
 			delete[] mem;
 		}

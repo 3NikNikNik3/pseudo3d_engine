@@ -25,11 +25,6 @@ namespace pseudo3d_engine {
 			for (int i = 0; i <= size; ++i)
 				this->path[i] = path[i];
 
-			/*sf::Image image;
-			if (!image.loadFromFile(path))
-				return false;
-			return texture.loadFromImage(image);*/
-
 			stbi_set_flip_vertically_on_load(1);
 
 			int chan;
@@ -297,33 +292,6 @@ namespace pseudo3d_engine {
 						arr_point[id + 9] = { buff_just_now.t + delta, 1 };
 						arr_point[id + 13] = { buff_just_now.t - delta, 1 };
 					}
-
-					/*if (wall.draw_type == 1) {
-						if (wall.type == 3) {
-							arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
-								{ uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].r,
-								  uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].g,
-								  uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].b,
-								  uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].alpha };
-						} else {
-							arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
-								{ wall.r, wall.g, wall.b, wall.alpha };
-						}
-					} else if (wall.draw_type == 2) {
-						Image *img;
-						if (wall.type == 3)
-							img = &uni.images[uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].id_texture];
-						else
-							img = &uni.images[wall.id_texture];
-						const float pos_x = img->get_x() * buff[i * size + j + k].t, pos_y = img->get_y();
-
-						arr[k * 6].texCoords = { pos_x - 0.5f, 0 };
-						arr[k * 6 + 1].texCoords = { pos_x + 0.5f, 0 };
-						arr[k * 6 + 2].texCoords = { pos_x + 0.5f, pos_y };
-						arr[k * 6 + 3].texCoords = { pos_x + 0.5f, pos_y };
-						arr[k * 6 + 4].texCoords = { pos_x - 0.5f, 0 };
-						arr[k * 6 + 5].texCoords = { pos_x - 0.5f, pos_y };
-					}*/
 				}
 
 				if (wall.draw_type == 1) {
@@ -415,18 +383,6 @@ namespace pseudo3d_engine {
 
 								arr_[0] = { id >> 2, (id + 4) >> 2, (id + 8) >> 2 };
 								arr_[1] = { id >> 2, (id + 8) >> 2, (id + 12) >> 2 };
-
-								/*if (place->draw_type) { // sky
-									if (place->type == 0) {
-										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
-											{ place->r, place->g, place->b, 255 };
-									}
-								} else { // place
-									if (place->type == 0) {
-										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
-											{ place->r, place->g, place->b, 255 };
-									}
-								}*/
 							}
 
 							if (place->type == 0) {
@@ -457,18 +413,6 @@ namespace pseudo3d_engine {
 
 								arr_[0] = { id >> 2, (id + 4) >> 2, (id + 8) >> 2 };
 								arr_[1] = { id >> 2, (id + 8) >> 2, (id + 12) >> 2 };
-
-								/*if (place->draw_type) { // sky?!
-									if (place->type == 0) {
-										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
-											{ place->r, place->g, place->b, 255 };
-									}
-								} else { // place
-									if (place->type == 0) {
-										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
-											{ place->r, place->g, place->b, 255 };
-									}
-								}*/
 							}
 
 							if (place->type == 0) {
@@ -505,18 +449,6 @@ namespace pseudo3d_engine {
 
 								arr_[0] = { id >> 2, (id + 4) >> 2, (id + 8) >> 2 };
 								arr_[1] = { id >> 2, (id + 8) >> 2, (id + 12) >> 2 };
-
-								/*if (place->draw_type) { // sky
-									if (place->type == 0) {
-										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
-											{ place->r, place->g, place->b, 255 };
-									}
-								} else { // place
-									if (place->type == 0) {
-										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
-											{ place->r, place->g, place->b, 255 };
-									}
-								}*/
 							}
 
 							if (place->type == 0) {
@@ -547,18 +479,6 @@ namespace pseudo3d_engine {
 
 								arr_[0] = { id >> 2, (id + 4) >> 2, (id + 8) >> 2 };
 								arr_[1] = { id >> 2, (id + 8) >> 2, (id + 12) >> 2 };
-
-								/*if (place->draw_type) { // sky?!
-									if (place->type == 0) {
-										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
-											{ place->r, place->g, place->b, 255 };
-									}
-								} else { // place
-									if (place->type == 0) {
-										arr[k * 6].color = arr[k * 6 + 1].color = arr[k * 6 + 2].color = arr[k * 6 + 3].color = arr[k * 6 + 4].color = arr[k * 6 + 5].color = \
-											{ place->r, place->g, place->b, 255 };
-									}
-								}*/
 							}
 
 							if (place->type == 0) {
@@ -584,38 +504,6 @@ namespace pseudo3d_engine {
 			glUnmapBuffer(GL_ARRAY_BUFFER);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
-
-		/*void draw_line(Window &win, int x, int y, int size, uchar r, uchar g, uchar b, uchar a) {
-			vertex_line_arr;
-
-			arr[0].color = arr[1].color = arr[2].color = arr[3].color = { r, g, b, a };
-
-			win.window->draw(arr, 4, sf::PrimitiveType::TriangleStrip);
-		}
-
-		void draw_image(Window &win, int x, int y, int size, Image &img, float t) {
-			vertex_line_arr;
-
-			sf::Vector2f pos = { img.texture.getSize().x * t, (float)img.texture.getSize().y };
-
-			arr[0].texCoords = { pos.x - 1, 0 };
-			arr[1].texCoords = { pos.x + 1, 0 };
-			arr[2].texCoords = { pos.x - 1, pos.y };
-			arr[3].texCoords = { pos.x + 1, pos.y };
-
-			win.window->draw(arr, 4, sf::PrimitiveType::TriangleStrip, &img.texture);
-		}*/
-
-		/*void draw_part_image(Window &win, int x, int y, int size, Image &img, float from_img_x, float from_img_y, float to_img_x, float to_img_y) {
-			vertex_line_arr;
-
-			arr[0].texCoords = { from_img_x, from_img_y };
-			arr[1].texCoords = { to_img_x, from_img_y };
-			arr[2].texCoords = { from_img_x, to_img_y };
-			arr[3].texCoords = { to_img_x, to_img_y };
-
-			win.window->draw(arr, 4, sf::PrimitiveType::TriangleStrip, &img.texture);
-		}*/
 	}
 }
 

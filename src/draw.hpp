@@ -41,11 +41,5 @@ namespace pseudo3d_engine {
 		void add_none(unsigned int x, uchar depth, float from_x, float from_y, float a_x, float a_y, uchar id_world);
 
 		void draw(Window &win, Universe &uni, int x, int y, int size_x, int size_y);
-
-		void draw_line(Window &win, int x, int y, int size, uchar r, uchar g, uchar b, uchar a);
-
-		void draw_image(Window &win, int x, int y, int size, Image &img, float t);
-
-		// void draw_part_image(Window &win, int x, int y, int size, Image &img, float from_img_x, float from_img_y, float to_img_x, float to_img_y);
 	}
 }

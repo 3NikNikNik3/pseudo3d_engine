@@ -863,7 +863,31 @@ namespace pseudo3d_engine {
 		delete[] new_path;
 	}
 
-	bool init() {
+	bool init(const char *path_settings) {
+		if (path_settings == nullptr) {
+			get_settings().depth_draw = 16;
+		} else {
+			std::ifstream file(path_settings);
+			if (!file.is_open()) {
+				std::cerr << "\033[31mError load settings\033[39m: no file \"" << path_settings << '"' << std::endl;
+				return false;
+			}
+
+			if (!(file >> get_settings().depth_draw)) {
+				std::cerr << "\033[31Error load settings\033[39m: depth_draw is not a number" << std::endl;
+				file.close();
+				return false;
+			}
+
+			if (get_settings().depth_draw < 2) {
+				std::cerr << "\033[31mError load settings\033[39m: depth_draw < 2!" << std::endl;
+				file.close();
+				return false;
+			}
+
+			file.close();
+		}
+
 		glewExperimental = GL_TRUE;
 		if (glewInit() != GLEW_OK) {
 			std::cerr << "\033[31mError load GLEW\033[39m" << std::endl;
@@ -878,5 +902,13 @@ namespace pseudo3d_engine {
 
 	void deinit() {
 		draw::deinit();
+	}
+
+	void save_settings(const char *path) {
+		std::ofstream file(path);
+
+		file << (int)get_settings().depth_draw << std::endl;
+
+		file.close();
 	}
 }

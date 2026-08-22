@@ -455,4 +455,11 @@ namespace pseudo3d_engine {
 
 		size_image = size;
 	}
+
+	// Settings
+	Settings settings;
+
+	Settings& get_settings() {
+		return settings;
+	}
 }

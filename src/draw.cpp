@@ -192,16 +192,16 @@ namespace pseudo3d_engine {
 				std::free(use);
 				std::free(time);
 
-				buff = (buffer_draw*)std::calloc(size_new * DEPTH, sizeof(buffer_draw));
-				use = (uchar*)std::calloc((DEPTH >> 3) + 1, sizeof(uchar));
-				time = (uchar*)std::calloc((DEPTH >> 3) + 1, sizeof(uchar));
+				buff = (buffer_draw*)std::calloc(size_new * get_settings().depth_draw, sizeof(buffer_draw));
+				use = (uchar*)std::calloc((get_settings().depth_draw >> 3) + 1, sizeof(uchar));
+				time = (uchar*)std::calloc((get_settings().depth_draw >> 3) + 1, sizeof(uchar));
 
 				if (buff == nullptr || use == nullptr || time == nullptr)
 					throw "little memory";
 
 				size = size_new;
 			} else {
-				for (int i = DEPTH >> 3; i > -1; --i)
+				for (int i = get_settings().depth_draw >> 3; i > -1; --i)
 					use[i] = 0;
 			}
 		}
@@ -211,11 +211,11 @@ namespace pseudo3d_engine {
 			std::free(use);
 			std::free(time);
 
-			glDeleteProgram(prog_color);
-			glDeleteProgram(prog_image);
+			if (prog_color) glDeleteProgram(prog_color);
+			if (prog_image) glDeleteProgram(prog_image);
 
-			glDeleteBuffers(1, &vbo);
-			glDeleteBuffers(1, &ebo);
+			if (vbo) glDeleteBuffers(1, &vbo);
+			if (ebo) glDeleteBuffers(1, &ebo);
 		}
 
                 void add(unsigned int x, uchar depth, float s, float t, float from_x, float from_y, float a_x, float a_y, std::uint16_t id_wall, uchar id_world) { 
@@ -328,13 +328,13 @@ namespace pseudo3d_engine {
 
                 void draw(Window &win, Universe &uni, int x, int y, int size_x, int size_y) {
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
-			glBufferData(GL_ARRAY_BUFFER, DEPTH * size_x * 3 * 4 * 8 * sizeof(GLfloat), nullptr, GL_DYNAMIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, get_settings().depth_draw * size_x * 3 * 4 * 8 * sizeof(GLfloat), nullptr, GL_DYNAMIC_DRAW);
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, DEPTH * size_x * 3 * 6 * sizeof(GLuint), nullptr, GL_DYNAMIC_DRAW);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, get_settings().depth_draw * size_x * 3 * 6 * sizeof(GLuint), nullptr, GL_DYNAMIC_DRAW);
 
-			vec2f *arr_point = (vec2f*)glMapBufferRange(GL_ARRAY_BUFFER, 0, DEPTH * size_x * 3 * 4 * 8 * sizeof(GLfloat), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
-			vec3i *arr_tri = (vec3i*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, DEPTH * size_x * 3 * 6 * sizeof(GLuint), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+			vec2f *arr_point = (vec2f*)glMapBufferRange(GL_ARRAY_BUFFER, 0, get_settings().depth_draw * size_x * 3 * 4 * 8 * sizeof(GLfloat), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+			vec3i *arr_tri = (vec3i*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, get_settings().depth_draw * size_x * 3 * 6 * sizeof(GLuint), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 
 			if (!arr_point || !arr_tri) {
 				while (GLint er = glGetError())
@@ -347,7 +347,7 @@ namespace pseudo3d_engine {
 				glVertexAttribPointer(i, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)((i << 1) * sizeof(GLfloat)));
 			}
 
-			for (int i = DEPTH - 1; i > -1; --i) {
+			for (int i = get_settings().depth_draw - 1; i > -1; --i) {
 				if ((use[i >> 3] >> (i & 0x7)) & 1) {
 					for (int j = 0; j < size;) {
 						while (j < size && buff[i * size + j].time == ((time[i >> 3] >> (i & 0x7)) & 1)) {

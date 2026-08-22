@@ -134,4 +134,11 @@ namespace pseudo3d_engine {
 
 		void resize_images(unsigned int size);
 	};
+
+	// for const (on run) settings
+	struct Settings {
+		uchar depth_draw;
+	};
+
+	Settings& get_settings();
 }

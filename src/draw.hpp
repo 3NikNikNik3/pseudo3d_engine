@@ -6,8 +6,6 @@
 
 #define uchar unsigned char
 
-#define DEPTH 16
-
 namespace pseudo3d_engine {
 	struct Universe;
 

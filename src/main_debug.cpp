@@ -27,7 +27,7 @@ int main() {
 
 	sf::RenderWindow window(sf::VideoMode({800, 600}), "Test pseudo 3D engine", sf::Style::Default);
 
-	if (!init()) {
+	if (!init("test.txt")) {
 		deinit();
 		return 1;
 	}

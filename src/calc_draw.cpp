@@ -149,7 +149,7 @@ namespace pseudo3d_engine {
 							break;
 						}
 
-						if (draw || i_stack == DEPTH - 1) { // stop
+						if (draw || i_stack == get_settings().depth_draw - 1) { // stop
 							delete[] mem;
 							return;
 						}

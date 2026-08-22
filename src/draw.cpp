@@ -116,9 +116,6 @@ namespace pseudo3d_engine {
 		static GLuint vbo = 0, ebo = 0;
 
 		bool init() {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 			glGenBuffers(1, &vbo);
 			glGenBuffers(1, &ebo);
 
@@ -187,6 +184,9 @@ namespace pseudo3d_engine {
 		static uchar *use = nullptr, *time = nullptr;
 
 		void init_buff(unsigned int size_new) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 			if (size_new != size) {
 				std::free(buff);
 				std::free(use);
@@ -218,7 +218,7 @@ namespace pseudo3d_engine {
 			if (ebo) glDeleteBuffers(1, &ebo);
 		}
 
-                void add(unsigned int x, uchar depth, float s, float t, float from_x, float from_y, float a_x, float a_y, std::uint16_t id_wall, uchar id_world) { 
+                void add(unsigned int x, uchar depth, float s, float t, float from_x, float from_y, float a_x, float a_y, std::uint16_t id_wall, uchar id_world) {
 			use[depth >> 3] |= 1 << (depth & 0x7);
 
 			buffer_draw &now = buff[depth * size + x];

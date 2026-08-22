@@ -7,6 +7,7 @@
 #include "stb_image.h"
 
 #include "engine_structs.hpp"
+#include "my_shaders.hpp"
 
 #define vertex_line_arr sf::Vertex arr[4] = { \
 			{ { (float)x, (float)y } }, \
@@ -63,8 +64,8 @@ namespace pseudo3d_engine {
 		}
 
 		// shader's functions
-		bool load_shader(GLuint type, const char *path, GLuint &ans) {
-			std::ifstream file(path);
+		bool load_shader(GLuint type, const char *text, GLuint &ans) {
+			/*std::ifstream file(path);
 			if (!file.is_open()) {
 				std::cerr << "\033[31mError load shader \"" << path << "\"\033[39m: no file" << std::endl;
 				return false;
@@ -78,20 +79,18 @@ namespace pseudo3d_engine {
 			file.read(src, len);
 			src[len] = '\0';
 
-			file.close();
+			file.close();*/
 
 			ans = glCreateShader(type);
-			glShaderSource(ans, 1, &src, nullptr);
+			glShaderSource(ans, 1, &text, nullptr);
 			glCompileShader(ans);
-
-			delete[] src;
 
 			GLint ret;
 			glGetShaderiv(ans, GL_COMPILE_STATUS, &ret);
 			if (!ret) {
 				char text[512];
 				glGetShaderInfoLog(ans, 512, nullptr, text);
-				std::cerr << "\033[31mError compile shader \"" << path << "\"\033[39m: " << text << std::endl;
+				std::cerr << "\033[31mError compile shader\033[39m: " << text << std::endl;
 
 				glDeleteShader(ans);
 				return false;
@@ -116,7 +115,6 @@ namespace pseudo3d_engine {
 		static GLuint prog_color = 0, prog_image = 0;
 		static GLuint vbo = 0, ebo = 0;
 
-		//! delete ../
 		bool init() {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -125,12 +123,12 @@ namespace pseudo3d_engine {
 			glGenBuffers(1, &ebo);
 
 			GLuint sh_vec;
-			if (!load_shader(GL_VERTEX_SHADER, "../shaders/vertex.vert", sh_vec))
+			if (!load_shader(GL_VERTEX_SHADER, SHADER_VERTEX, sh_vec))
 				return false;
 
 			// prog_color
 			GLuint sh_color;
-			if (!load_shader(GL_FRAGMENT_SHADER, "../shaders/color.frag", sh_color)) {
+			if (!load_shader(GL_FRAGMENT_SHADER, SHADER_COLOR, sh_color)) {
 				glDeleteShader(sh_vec);
 				return false;
 			}
@@ -150,7 +148,7 @@ namespace pseudo3d_engine {
 
 			// prog_image
 			GLuint sh_image;
-			if (!load_shader(GL_FRAGMENT_SHADER, "../shaders/image.frag", sh_image)) {
+			if (!load_shader(GL_FRAGMENT_SHADER, SHADER_IMAGE, sh_image)) {
 				glDeleteShader(sh_vec);
 				return false;
 			}

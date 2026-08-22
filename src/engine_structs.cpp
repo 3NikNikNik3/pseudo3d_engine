@@ -338,6 +338,8 @@ namespace pseudo3d_engine {
 	void World::make_tree() {
 		if (pwalls != nullptr) return;
 
+		srand(time(nullptr));
+
 		// reading
 
 		std::uint16_t lwalls_size_real = walls_size, lwalls_size_now = walls_size;

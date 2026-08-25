@@ -186,7 +186,7 @@ namespace pseudo3d_engine {
 				} else if (res_start >= 0 && res_end >= 0) {
 					add_lwall(left, lwalls, now);
 					++left.len_can;
-				} else if (res_start <= 0 && res_start <= 0) {
+				} else if (res_start <= 0 && res_end <= 0) {
 					add_lwall(right, lwalls, now);
 					++right.len_can;
 				} else { // cut
@@ -338,7 +338,7 @@ namespace pseudo3d_engine {
 	void World::make_tree() {
 		if (pwalls != nullptr) return;
 
-		srand(time(nullptr));
+		srand(rand() + time(nullptr));
 
 		// reading
 
@@ -390,8 +390,8 @@ namespace pseudo3d_engine {
 			arr[0].type = 1;
 		}
 
-		/*// debug info
-		std::cout << arr_size_now << ':' << std::endl;
+		// debug info
+		/*std::cout << arr_size_now << ':' << std::endl;
 		for (int i = 0; i < arr_size_now; ++i) {
 			std::cout << i;
 			if (arr[i].type == 0) {

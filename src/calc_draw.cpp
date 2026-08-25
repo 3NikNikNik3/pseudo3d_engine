@@ -109,7 +109,7 @@ namespace pseudo3d_engine {
 
 						// add to stack-draw
 						s_all += s;
-						draw::add(x, i_stack, s_all, t, from.x, from.y, a.x, a.y, id_wall, id_world);
+						draw::add(x, i_stack, s_all - s, s_all, t, from.x, from.y, a.x, a.y, id_wall, id_world);
 						++i_stack;
 
 						// special properties
@@ -178,7 +178,7 @@ namespace pseudo3d_engine {
 				}
 			}
 
-			draw::add_none(x, i_stack, from.x, from.y, a.x, a.y, id_world);
+			draw::add_none(x, i_stack, s_all, from.x, from.y, a.x, a.y, id_world);
 
 			delete[] mem;
 		}

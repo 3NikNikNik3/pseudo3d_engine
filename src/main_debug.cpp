@@ -40,6 +40,7 @@ int main() {
 	Universe uni;
 	if (!load_universe("../data/test.map", uni)) {
 		window.close();
+		deinit();
 		return 1;
 	}
 

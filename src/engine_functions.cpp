@@ -98,6 +98,10 @@ namespace pseudo3d_engine {
 			if (!load_color(file, place.r, place.g, place.b, tmp1, name))
 				return false;
 			break;
+		case 1:
+			if (!(file >> place.id_texture))
+				return false;
+			break;
 		default:
 			print_error_load("don't know type of " << name);
 		}
@@ -269,6 +273,10 @@ namespace pseudo3d_engine {
 		switch (place.type) {
 		case 0:
 			file << ' ' << (int)place.r << ' ' << (int)place.g << ' ' << (int)place.b;
+			break;
+		case 1:
+			file << ' ' << place.id_texture;
+			break;
 		}
 
 		file << std::endl;
@@ -420,6 +428,11 @@ namespace pseudo3d_engine {
 
 			file.write((char*)buf, 4);
 			break;
+		case 1:
+			to_buf(buf + 1, place.id_texture);
+
+			file.write((char*)buf, 5);
+			break;
 		}
 	}
 
@@ -434,7 +447,7 @@ namespace pseudo3d_engine {
 
 		switch (place.type) {
 		case 0:
-			if (!file.read((char *)buf, 3)) {
+			if (!file.read((char*)buf, 3)) {
 				delete[] buf;
 				print_error_load("no color of place");
 			}
@@ -442,6 +455,14 @@ namespace pseudo3d_engine {
 			place.r = buf[0];
 			place.g = buf[1];
 			place.b = buf[2];
+			break;
+		case 1:
+			if (!file.read((char*)buf, 4)) {
+				delete[] buf;
+				print_error_load("no texture's id");
+			}
+
+			place.id_texture = from_buf_uint(buf);
 			break;
 		}
 

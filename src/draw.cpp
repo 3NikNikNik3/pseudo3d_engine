@@ -112,7 +112,7 @@ namespace pseudo3d_engine {
 		}
 
 		// global var. for opengl
-		static GLuint prog_color = 0, prog_image = 0, prog_floor = 0, prog_floor_inf = 0;
+		static GLuint prog_color = 0, prog_image = 0, prog_floor = 0, prog_floor_inf = 0, prog_sky = 0;
 		static GLuint vbo = 0, ebo = 0;
 
 		bool init() {
@@ -203,6 +203,26 @@ namespace pseudo3d_engine {
 
 			glDeleteShader(sh_floor_inf);
 
+			// prog_sky
+			GLuint sh_sky;
+			if (!load_shader(GL_FRAGMENT_SHADER, SHADER_SKY, sh_sky)) {
+				glDeleteShader(sh_vec);
+				return false;
+			}
+
+			prog_sky = glCreateProgram();
+			glAttachShader(prog_sky, sh_vec);
+			glAttachShader(prog_sky, sh_sky);
+
+			glLinkProgram(prog_sky);
+			if (!check_link_prog(prog_sky)) {
+				glDeleteShader(sh_vec);
+				glDeleteShader(sh_sky);
+				return false;
+			}
+
+			glDeleteShader(sh_sky);
+
 			glDeleteShader(sh_vec);
 
 			return true;
@@ -255,6 +275,7 @@ namespace pseudo3d_engine {
 			if (prog_image) glDeleteProgram(prog_image);
 			if (prog_floor) glDeleteProgram(prog_floor);
 			if (prog_floor_inf) glDeleteProgram(prog_floor_inf);
+			if (prog_sky) glDeleteProgram(prog_sky);
 
 			if (vbo) glDeleteBuffers(1, &vbo);
 			if (ebo) glDeleteBuffers(1, &ebo);
@@ -415,10 +436,10 @@ namespace pseudo3d_engine {
 							Place *place = &uni.worlds[buff[i * size + j].id_world].up;
 							for (int k = 0; k < len; ++k) {
 								const buffer_draw &just_now_buff = buff[i * size + j + k];
-								const float pos_x = x + j + k, pos_y = size_y / 2.0f;
+								const float pos_x = x + j + k, pos_y = size_y / 2.0f, s_old_ = 1 / just_now_buff.s_old;
 								float pos_y_old = 0;
 								if (just_now_buff.s_old >= 1)
-									pos_y_old = size_y / 2.0f * (1 - 1 / just_now_buff.s_old);
+									pos_y_old = size_y / 2.0f * (1 - s_old_);
 
 								const unsigned int id = size_x * 60 * i + (j + k) * 20;
 								vec3i *arr_ = arr_tri + size_x * 6 * i + (j + k) * 2;
@@ -434,7 +455,23 @@ namespace pseudo3d_engine {
 								arr_[1] = { id_, id_ + 2, id_ + 3 };
 
 								if (place->type == 1) {
-									if (!place->draw_type) {
+									if (place->draw_type) {
+										arr_point[id + 1] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 6] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 11] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 16] = { just_now_buff.a_x, just_now_buff.a_y };
+
+										if (just_now_buff.s_old < 1) {
+											arr_point[id + 2] = { 1, 0 };
+											arr_point[id + 7] = { 1, 0 };
+										} else {
+											arr_point[id + 2] = { s_old_, 0 };
+											arr_point[id + 7] = { s_old_, 0 };
+										}
+
+										arr_point[id + 12] = { 0, 0 };
+										arr_point[id + 17] = { 0, 0 };
+									} else {
 										arr_point[id + 1] = { just_now_buff.from_x, just_now_buff.from_y };
 										arr_point[id + 2] = { just_now_buff.a_x, just_now_buff.a_y };
 										arr_point[id + 3] = { just_now_buff.s_old, 1 };
@@ -465,30 +502,34 @@ namespace pseudo3d_engine {
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 72 * i + j * 24));
 							} else if (place->type == 1) {
-								if (!place->draw_type) {
-									GLuint size_uni = glGetUniformLocation(prog_floor_inf, "size_screen");
+								GLuint size_uni;
 
+								if (place->draw_type) {
+									size_uni = glGetUniformLocation(prog_sky, "size_screen");
+									glUseProgram(prog_sky);
+								} else {
+									size_uni = glGetUniformLocation(prog_floor_inf, "size_screen");
 									glUseProgram(prog_floor_inf);
-
-									glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
-									glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
-
-									glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 72 * i + j * 24));
-
-									glBindTexture(GL_TEXTURE_2D, 0);
 								}
+
+								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
+
+								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 72 * i + j * 24));
+
+								glBindTexture(GL_TEXTURE_2D, 0);
 							}
 
 							// down-place
 							place = &uni.worlds[buff[i * size + j].id_world].down;
 							for (int k = 0; k < len; ++k) {
 								const buffer_draw &just_now_buff = buff[i * size + j + k];
-								const float pos_x = x + j + k, pos_y = size_y / 2;
+								const float pos_x = x + j + k, pos_y = size_y / 2, s_old_ = 1 / just_now_buff.s_old;
 								float pos_y_old;
 								if (just_now_buff.s_old < 1)
 									pos_y_old = size_y;
 								else
-									pos_y_old = (int)(size_y / 2.0f * (1 - 1 / just_now_buff.s_old)) + (int)(size_y / just_now_buff.s_old);
+									pos_y_old = (int)(size_y / 2.0f * (1 - s_old_)) + (int)(size_y * s_old_);
 
 								const unsigned int id = size_x * 40 + size_x * 60 * i + (j + k) * 20;
 								vec3i *arr_ = arr_tri + size_x * 4 + size_x * 6 * i + (j + k) * 2;
@@ -504,7 +545,23 @@ namespace pseudo3d_engine {
 								arr_[1] = { id_, id_ + 2, id_ + 3 };
 
 								if (place->type == 1) {
-									if (!place->draw_type) {
+									if (place->draw_type) {
+										arr_point[id + 1] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 6] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 11] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 16] = { just_now_buff.a_x, just_now_buff.a_y };
+
+										arr_point[id + 2] = { 0, 0 };
+										arr_point[id + 8] = { 0, 0 };
+
+										if (just_now_buff.s_old < 1) {
+											arr_point[id + 12] = { 1, 0 };
+											arr_point[id + 17] = { 1, 0 };
+										} else {
+											arr_point[id + 12] = { s_old_, 0 };
+											 arr_point[id + 17] = { s_old_, 0 };
+										}
+									} else {
 										arr_point[id + 1] = { just_now_buff.from_x, just_now_buff.from_y };
 										arr_point[id + 2] = { just_now_buff.a_x, just_now_buff.a_y };
 										arr_point[id + 3] = { just_now_buff.s_old, 0 };
@@ -535,18 +592,22 @@ namespace pseudo3d_engine {
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 48 + size_x * 72 * i + j * 24));
 							} else if (place->type == 1) {
-								if (!place->draw_type) {
-									GLuint size_uni = glGetUniformLocation(prog_floor_inf, "size_screen");
+								GLuint size_uni;
 
+								if (place->draw_type) {
+									size_uni = glGetUniformLocation(prog_sky, "size_screen");
+									glUseProgram(prog_sky);
+								} else {
+									size_uni = glGetUniformLocation(prog_floor_inf, "size_screen");
 									glUseProgram(prog_floor_inf);
-
-									glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
-									glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
-
-									glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 48 + size_x * 72 * i + j * 24));
-
-									glBindTexture(GL_TEXTURE_2D, 0);
 								}
+
+								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
+
+								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 48 + size_x * 72 * i + j * 24));
+
+								glBindTexture(GL_TEXTURE_2D, 0);
 							}
 						} else {
 							// draw normal
@@ -578,7 +639,23 @@ namespace pseudo3d_engine {
 								arr_[1] = { id_, id_ + 2, id_ + 3 };
 
 								if (place->type == 1) {
-									if (!place->draw_type) {
+									if (place->draw_type) {
+										arr_point[id + 1] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 6] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 11] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 16] = { just_now_buff.a_x, just_now_buff.a_y };
+
+										if (just_now_buff.s_old < 1) {
+											arr_point[id + 2] = { 1, 0 };
+											arr_point[id + 7] = { 1, 0 };
+										} else {
+											arr_point[id + 2] = { 1 / just_now_buff.s_old, 0 };
+											arr_point[id + 7] = { arr_point[id + 2].x, 0 };
+										}
+
+										arr_point[id + 12] = { 1 / just_now_buff.s, 0 };
+										arr_point[id + 17] = { arr_point[id + 12].x, 0 };
+									} else {
 										arr_point[id + 1] = { just_now_buff.from_x, just_now_buff.from_y };
 										arr_point[id + 2] = { just_now_buff.a_x, just_now_buff.a_y };
 										arr_point[id + 3] = { just_now_buff.s_old, just_now_buff.s };
@@ -613,18 +690,22 @@ namespace pseudo3d_engine {
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 72 * i + j * 24));
 							} else if (place->type == 1) {
-								if (!place->draw_type) {
-									GLuint size_uni = glGetUniformLocation(prog_floor, "size_screen");
+								GLuint size_uni;
 
+								if (place->draw_type) {
+									size_uni = glGetUniformLocation(prog_sky, "size_screen");
+									glUseProgram(prog_sky);
+								} else {
+									size_uni = glGetUniformLocation(prog_floor, "size_screen");
 									glUseProgram(prog_floor);
-
-									glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
-									glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
-
-									glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 72 * i + j * 24));
-
-									glBindTexture(GL_TEXTURE_2D, 0);
 								}
+
+								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
+
+								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 72 * i + j * 24));
+
+								glBindTexture(GL_TEXTURE_2D, 0);
 							}
 
 							// down-place
@@ -652,7 +733,23 @@ namespace pseudo3d_engine {
 								arr_[1] = { id_, id_ + 2, id_ + 3 };
 
 								if (place->type == 1) {
-									if (!place->draw_type) {
+									if (place->draw_type) {
+										arr_point[id + 1] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 6] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 11] = { just_now_buff.a_x, just_now_buff.a_y };
+										arr_point[id + 16] = { just_now_buff.a_x, just_now_buff.a_y };
+
+										arr_point[id + 2] = { 1 / just_now_buff.s, 0 };
+										arr_point[id + 7] = { arr_point[id + 2].x, 0 };
+
+										if (just_now_buff.s_old < 1) {
+											arr_point[id + 12] = { 1, 0 };
+											arr_point[id + 17] = { 1, 0 };
+										} else {
+											arr_point[id + 12] = { 1 / just_now_buff.s_old, 0 };
+											arr_point[id + 17] = { arr_point[id + 12].x, 0 };
+										}
+									} else {
 										arr_point[id + 1] = { just_now_buff.from_x, just_now_buff.from_y };
 										arr_point[id + 2] = { just_now_buff.a_x, just_now_buff.a_y };
 										arr_point[id + 3] = { just_now_buff.s_old, just_now_buff.s };
@@ -687,18 +784,22 @@ namespace pseudo3d_engine {
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 48 + size_x * 72 * i + j * 24));
 							} else if (place->type == 1) {
-								if (!place->draw_type) {
-									GLuint size_uni = glGetUniformLocation(prog_floor, "size_screen");
+								GLuint size_uni;
 
+								if (place->draw_type) {
+									size_uni = glGetUniformLocation(prog_sky, "size_screen");
+									glUseProgram(prog_sky);
+								} else {
+									size_uni = glGetUniformLocation(prog_floor, "size_screen");
 									glUseProgram(prog_floor);
-
-									glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
-									glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
-
-									glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 48 + size_x * 72 * i + j * 24));
-
-									glBindTexture(GL_TEXTURE_2D, 0);
 								}
+
+								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
+
+								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 48 + size_x * 72 * i + j * 24));
+
+								glBindTexture(GL_TEXTURE_2D, 0);
 							}
 						}
 

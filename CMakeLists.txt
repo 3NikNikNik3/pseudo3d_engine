@@ -16,5 +16,5 @@ if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
 else()
 	add_library(pseudo3d_engine SHARED src/main.cpp)
 
-        target_link_libraries(pseudo3d_engine src)
+	target_link_libraries(pseudo3d_engine src)
 endif()

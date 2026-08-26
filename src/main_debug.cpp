@@ -27,7 +27,7 @@ int main() {
 
 	sf::RenderWindow window(sf::VideoMode({800, 600}), "Test pseudo 3D engine", sf::Style::Default);
 
-	if (!init("test.txt")) {
+	if (!init(nullptr)) {
 		deinit();
 		return 1;
 	}
@@ -43,6 +43,10 @@ int main() {
 		deinit();
 		return 1;
 	}
+
+	/*uni.worlds[0].up.type = 1;
+	uni.worlds[0].up.draw_type = 0;
+	uni.worlds[0].up.id_texture = 2;*/
 
 	sf::Clock clock;
 

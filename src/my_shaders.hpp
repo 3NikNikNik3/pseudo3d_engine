@@ -92,6 +92,25 @@ void main() {
 })"
 
 
+// like sky.frag
+#define SHADER_SKY R"(#version 330 core
+
+// a
+in vec2 data0;
+// now, 0
+in vec2 data1;
+
+out vec4 color;
+
+uniform sampler2D tex;
+
+const float pi = 3.141592653589793;
+
+void main() {
+	color = texture(tex, vec2(atan(data0.y, data0.x) / (2*pi) + 0.5f, data1.x));
+})"
+
+
 // like vertex.vert
 #define SHADER_VERTEX R"(#version 330 core
 

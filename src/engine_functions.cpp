@@ -84,6 +84,8 @@ namespace pseudo3d_engine {
 	}
 
 	bool load_place_map(std::ifstream &file, Place &place, const char *name) {
+		ignore_comment(file);
+
 		uchar tmp0, tmp1;
 		if (!(file >> tmp0 >> tmp1)) {
 			print_error_load("type of " << name << " isn't number");
@@ -141,14 +143,14 @@ namespace pseudo3d_engine {
 				ans.set_worlds(size_worlds);
 
 				for (int i = 0; i < size_worlds; ++i) {
-					ignore_comment(file);
-
 					// place
 					if (!load_place_map(file, ans.worlds[i].up, "up-place"))
 						return false;
 
 					if (!load_place_map(file, ans.worlds[i].down, "down-place"))
 						return false;
+
+					ignore_comment(file);
 
 					// walls
 					int count_walls;

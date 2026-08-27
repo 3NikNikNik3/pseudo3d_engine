@@ -290,6 +290,7 @@ namespace pseudo3d_engine {
 		std::uint16_t id_left = arr[id].id_left;
 		if (arr[id_left].type) {
 			nodes[id_ans].left = nodes_last;
+			nodes[nodes_last].back = id_ans;
 			++nodes_last;
 			save_tree(nodes, nodes_last, nodes_last - 1, pwalls, pwalls_last, arr, id_left, lwalls);
 		} else {
@@ -314,6 +315,7 @@ namespace pseudo3d_engine {
 		std::uint16_t id_right = arr[id].id_right;
 		if (arr[id_right].type) {
 			nodes[id_ans].right = nodes_last;
+			nodes[nodes_last].back = id_ans;
 			++nodes_last;
 			save_tree(nodes, nodes_last, nodes_last - 1, pwalls, pwalls_last, arr, id_right, lwalls);
 		} else {
@@ -379,9 +381,9 @@ namespace pseudo3d_engine {
 			std::uint16_t id_;
 			arr = (node_calc_tree*)get_new(arr, arr_size_real, arr_size_now, sizeof(node_calc_tree), id_);
 
-			arr[id_].len_can = 0;
-			arr[id_].len = 0;
-			arr[id_].id_list = 0;
+			arr[id_].len_can = arr[0].len_can;
+			arr[id_].len = arr[0].len;
+			arr[id_].id_list = arr[0].id_list;
 			arr[id_].type = 0;
 
 			arr[0].id_wall = 0;
@@ -417,6 +419,7 @@ namespace pseudo3d_engine {
 		count_node = 1;
 		count_array = 0;
 		save_tree(nodes, count_node, 0, pwalls, count_array, arr, 0, lwalls);
+		nodes[0].back = 0;
 
 		std::free(arr);
 		std::free(lwalls);

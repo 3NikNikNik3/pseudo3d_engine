@@ -28,4 +28,7 @@ namespace pseudo3d_engine {
 	void deinit();
 
 	void save_settings(const char *path);
+
+	// not for lib
+	void get_node(World &world, math::Vec2f pos, std::uint16_t &id_node, std::uint16_t &len_node);
 }

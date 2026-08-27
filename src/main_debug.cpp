@@ -35,7 +35,7 @@ int main() {
 	window.setView(sf::View(sf::FloatRect({0.f, 0.f}, {(float)window.getSize().x, (float)window.getSize().y})));
 
 	draw::Window win(&window);
-	MovingObject player({0, 0}, 1.57, 0);
+	MovingObject player({0, 0}, 1.57, 0, 0, 0);
 
 	Universe uni;
 	if (!load_universe("../data/test.map", uni)) {

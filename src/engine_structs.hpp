@@ -9,6 +9,10 @@ namespace pseudo3d_engine {
 	struct MovingObject {
 		math::Vec2f pos;
 		float a;
+		// id_node_now is cache for phys::move and entity::draw
+		// id_node_now: 0x8000 - left or right, 0x7fff - real node's id
+		// id_node_now and len_node_now is 0 by default!
+		std::uint16_t id_node_now, len_node_now;
 		uchar id_world;
 	};
 
@@ -82,7 +86,7 @@ namespace pseudo3d_engine {
 	struct node {
 		std::uint16_t id_wall;
 		// 0b: 0 - node, 1 - array; 1-15b: id
-		std::uint16_t left, right;
+		std::uint16_t left, right, back;
 	};
 
 	struct wall_ptr {

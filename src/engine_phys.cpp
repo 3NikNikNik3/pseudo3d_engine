@@ -2,6 +2,7 @@
 
 #include "my_math.hpp"
 #include "calc_draw.hpp"
+#include "engine_functions.hpp"
 
 namespace pseudo3d_engine {
 	bool what_see_real(World &world, math::Vec2f from, math::Vec2f a, std::uint16_t id_node, std::uint16_t *id_wall, float *s, float *t) {
@@ -40,24 +41,70 @@ namespace pseudo3d_engine {
 		return what_see_real(uni.worlds[id_world], from, a, 0, id_wall, s, t);
 	}
 
-	void move(Universe &uni, MovingObject &obj, math::Vec2f delta, int count) {
+	std::uint16_t get_lca(node *nodes, std::uint16_t x, std::uint16_t len_x, std::uint16_t y, std::uint16_t len_y) {
+		if (x == y) {
+			if (x & 0x8000)
+				return nodes[x & 0x7fff].right;
+			return nodes[x].left;
+		}
+
+		x &= 0x7fff;
+		y &= 0x7fff;
+		--len_x;
+		--len_y;
+
+		while (len_x > len_y) {
+			x = nodes[x].back;
+			--len_x;
+		}
+
+		while (len_y > len_x) {
+			y = nodes[y].back;
+			--len_y;
+		}
+
+		while (x != y) {
+			x = nodes[x].back;
+			y = nodes[y].back;
+
+			--len_x;
+			--len_y;
+		}
+
+		return x;
+	}
+
+	bool move(Universe &uni, MovingObject &obj, math::Vec2f delta, int count) {
 		// delta == {0,0}
 		if (count == 5 || (-EPS <= delta.x && delta.x <= EPS && -EPS <= delta.y && delta.y <= EPS))
-			return;
+			return false;
+
+		std::uint16_t id_node_will, len_node_will;
+		get_node(uni.worlds[obj.id_world], obj.pos + delta, id_node_will, len_node_will);
+
+		if (!obj.len_node_now)
+			get_node(uni.worlds[obj.id_world], obj.pos, obj.id_node_now, obj.len_node_now);
 
 		std::uint16_t id_wall;
 		float s, t;
 
-		if (what_see(uni, obj.id_world, obj.pos, math::norm(delta), &id_wall, &s, &t)) {
+		if (what_see_real(uni.worlds[obj.id_world], obj.pos, math::norm(delta), get_lca(uni.worlds[obj.id_world].nodes, obj.id_node_now, obj.len_node_now, id_node_will, len_node_will), &id_wall, &s, &t)) {
 			float delta_len = math::len(delta);
 
 			Wall &wall = uni.worlds[obj.id_world].walls[id_wall];
 
 			// teleport
 			if (wall.type == 3) {
-				if (s > delta_len)
+				if (s > delta_len) {
 					obj.pos += delta;
-				else {
+
+					if (obj.id_node_now == id_node_will)
+						return false;
+
+					obj.id_node_now = id_node_will;
+					obj.len_node_now = len_node_will;
+					return true;
+				} else {
 					delta /= delta_len;
 					delta_len -= s;
 
@@ -76,22 +123,36 @@ namespace pseudo3d_engine {
 					}
 					obj.a += math::get_angle((math::Vec2f)wall.a, (math::Vec2f)sec_wall->a);
 
-					obj.pos += delta * delta_len;
-				}
+					obj.len_node_now = 0;
 
-				return;
+					move(uni, obj, delta * delta_len);
+					return true;
+				}
 			}
 
 			// pass
 			if (wall.phys_pass) {
 				obj.pos += delta;
-				return;
+
+				if (obj.id_node_now == id_node_will)
+					return false;
+
+				obj.id_node_now = id_node_will;
+				obj.len_node_now = len_node_will;
+				return true;
 			}
 
 			// no pass
-			if (s > delta_len && s > SIZE_WALL)
+			if (s > delta_len && s > SIZE_WALL) {
 				obj.pos += delta;
-			else {
+
+				if (obj.id_node_now == id_node_will)
+					return false;
+
+				obj.id_node_now = id_node_will;
+				obj.len_node_now = len_node_will;
+				return true;
+			} else {
 				if (s > SIZE_WALL) {
 					obj.pos += delta * ((s - SIZE_WALL) / delta_len);
 
@@ -102,9 +163,19 @@ namespace pseudo3d_engine {
 
 				a /= math::len(a);
 
-				move(uni, obj, a * (math::dot(a, delta)), count + 1);
+				obj.len_node_now = 0;
+
+				return move(uni, obj, a * (math::dot(a, delta)), count + 1);
 			}
-		} else
+		} else {
 			obj.pos += delta;
+
+			if (obj.id_node_now == id_node_will)
+				return false;
+
+			obj.id_node_now = id_node_will;
+			obj.len_node_now = len_node_will;
+			return true;
+		}
 	}
 }

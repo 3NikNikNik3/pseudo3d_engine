@@ -7,5 +7,6 @@
 namespace pseudo3d_engine {
 	bool what_see(Universe &uni, uchar id_world, math::Vec2f from, math::Vec2f a, std::uint16_t *id_wall, float *s, float *t);
 
-	void move(Universe &uni, MovingObject &obj, math::Vec2f delta, int count = 0);
+	// return is true, if change id_node_now
+	bool move(Universe &uni, MovingObject &obj, math::Vec2f delta, int count = 0);
 }

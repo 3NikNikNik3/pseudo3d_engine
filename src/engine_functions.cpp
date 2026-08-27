@@ -739,8 +739,11 @@ namespace pseudo3d_engine {
 
 				world.nodes[j].id_wall = from_buf_16(buf);
 				world.nodes[j].left = from_buf_16(buf + 2);
+				world.nodes[world.nodes[j].left].back = j;
 				world.nodes[j].right = from_buf_16(buf + 4);
+				world.nodes[world.nodes[j].right].back = j;
 			}
+			world.nodes[0].back = 0;
 
 			if (!file.read((char*)buf, 2)) {
 				print_error_load("no wall_ptr_size on " << i << " world");
@@ -931,5 +934,30 @@ namespace pseudo3d_engine {
 		file << (int)get_settings().depth_draw << std::endl;
 
 		file.close();
+	}
+
+	void get_node(World &world, math::Vec2f pos, std::uint16_t &id_node, std::uint16_t &len_node) {
+		id_node = 0;
+		len_node = 1;
+
+		while (1) {
+			Wall &wall = world.walls[world.nodes[id_node].id_wall];
+			if (math::cross((math::Vec2f)wall.a, pos - (math::Vec2f)wall.from) > 0) {
+				if (world.nodes[id_node].left & 0x8000)
+					return;
+				else {
+					id_node = world.nodes[id_node].left;
+					++len_node;
+				}
+			} else {
+				if (world.nodes[id_node].left & 0x8000) {
+					id_node |= 0x8000;
+					return;
+				} else {
+					id_node = world.nodes[id_node].right;
+					++len_node;
+				}
+			}
+		}
 	}
 }

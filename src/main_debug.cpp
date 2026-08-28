@@ -73,7 +73,7 @@ int main() {
 			player.a += 0.001;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
 			player.a -= 0.001;
-		move(uni, player, math::rotation(math::norm(delta), -player.a) / 1000);
+		move(uni, player, math::rotation(math::norm(delta), player.a) / 1000);
 
 		window.clear({0, 0, 0});
 

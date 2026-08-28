@@ -77,8 +77,8 @@ namespace pseudo3d_engine {
 		}
 
 		Vec2f rotation(Vec2f v, float a) {
-			return {(float)(v.x * cos(a) + v.y * sin(a)),
-				(float)(-v.x * sin(a) + v.y * cos(a))};
+			return {(float)(v.x * cos(a) - v.y * sin(a)),
+				(float)(v.x * sin(a) + v.y * cos(a))};
 		}
 
 		float cross(Vec2f v, Vec2f w) {

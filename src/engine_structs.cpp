@@ -444,9 +444,6 @@ namespace pseudo3d_engine {
 	}
 
 	void Universe::resize_images(unsigned int size) {
-		if (size <= size_image)
-			return;
-
 		if (images == nullptr) {
 			images = (draw::Image*)std::malloc(size * sizeof(draw::Image));
 			if (images == nullptr)

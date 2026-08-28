@@ -83,13 +83,59 @@ namespace pseudo3d_engine {
 		return true;
 	}
 
-	bool load_place_map(std::ifstream &file, Place &place, const char *name) {
+	struct will_load_image {
+		char *path;
+		unsigned int *id;
+		will_load_image *next;
+	};
+
+	void delete_will_load_image(will_load_image *node) {
+		while (node->next) {
+			delete[] node->path;
+			will_load_image *p = node->next;
+			delete node;
+			node = p;
+		}
+		delete node;
+	}
+
+	void preload_image(std::ifstream &file, unsigned int *id, will_load_image **root, unsigned int *count_image_preload) {
+		char *path = new char[256], *now = path, is_number = 1;
+
+		ignore_space(file);
+
+		for (now = path; !file.eof(); ++now) {
+			*now = file.get();
+
+			if (*now == ' ' || *now == '\n')
+				break;
+
+			if (*now < '0' || '9' < *now)
+				is_number = 0;
+		}
+		*now = 0;
+
+		if (is_number) {
+			*id = std::atoi(path);
+
+			delete[] path;
+		} else {
+			will_load_image *new_root = new will_load_image(path, id, *root);
+			*root = new_root;
+
+			++*count_image_preload;
+		}
+	}
+
+	bool load_place_map(std::ifstream &file, Place &place, const char *name, will_load_image **root, unsigned int *count_preload_image) {
 		ignore_comment(file);
 
 		uchar tmp0, tmp1;
 		if (!(file >> tmp0 >> tmp1)) {
+			delete_will_load_image(*root);
 			print_error_load("type of " << name << " isn't number");
 		} else if (tmp0 > 2) {
+			delete_will_load_image(*root);
 			print_error_load("draw_type of " << name << " is too mach");
 		}
 		place.draw_type = tmp0;
@@ -101,10 +147,10 @@ namespace pseudo3d_engine {
 				return false;
 			break;
 		case 1:
-			if (!(file >> place.id_texture))
-				return false;
+			preload_image(file, &place.id_texture, root, count_preload_image);
 			break;
 		default:
+			delete_will_load_image(*root);
 			print_error_load("don't know type of " << name);
 		}
 		return true;
@@ -116,6 +162,9 @@ namespace pseudo3d_engine {
 		if (!file.is_open()) {
 			print_error_load("file \"" << path << "\" isn't exist");
 		}
+
+		unsigned int count_image_load = 0, count_image_preload = 0;
+		will_load_image *root = new will_load_image(nullptr, nullptr, nullptr);
 
 		// 0b - worlds, 1b - images
 		uchar flags = 0;
@@ -129,14 +178,17 @@ namespace pseudo3d_engine {
 				while (!file.eof() && file.get() != '\n');
 			} else if (str == "worlds:") {
 				if (flags & 1) {
+					delete_will_load_image(root);
 					print_error_load("worlds have already been");
 				}
 				flags |= 1;
 
 				int size_worlds;
 				if (!(file >> size_worlds)) {
+					delete_will_load_image(root);
 					print_error_load("count of worlds isn't number");
 				} else if (size_worlds < 0) {
+					delete_will_load_image(root);
 					print_error_load("count of worlds is negative");
 				}
 
@@ -144,10 +196,10 @@ namespace pseudo3d_engine {
 
 				for (int i = 0; i < size_worlds; ++i) {
 					// place
-					if (!load_place_map(file, ans.worlds[i].up, "up-place"))
+					if (!load_place_map(file, ans.worlds[i].up, "up-place", &root, &count_image_preload))
 						return false;
 
-					if (!load_place_map(file, ans.worlds[i].down, "down-place"))
+					if (!load_place_map(file, ans.worlds[i].down, "down-place", &root, &count_image_preload))
 						return false;
 
 					ignore_comment(file);
@@ -155,8 +207,10 @@ namespace pseudo3d_engine {
 					// walls
 					int count_walls;
 					if (!(file >> count_walls)) {
+						delete_will_load_image(root);
 						print_error_load("count of walls on " << i << " world isn't number");
 					} else if (count_walls < 0) {
+						delete_will_load_image(root);
 						print_error_load("count of walls on " << i << " world is negative");
 					}
 
@@ -168,18 +222,21 @@ namespace pseudo3d_engine {
 						Wall &wall = ans.worlds[i].walls[j];
 
 						if (!(file >> wall.from.x >> wall.from.y >> wall.a.x >> wall.a.y)) {
+							delete_will_load_image(root);
 							print_error_load("can not load position " << j << " wall on " << i << " world");
 						}
 
 						wall.a -= wall.from;
 
 						if (!wall.a.x && !wall.a.y) {
+							delete_will_load_image(root);
 							print_error_load(j << " wall on " << i << " world isn't wall");
 						}
 
 						uchar tmp0, tmp1;
 						char tmp2;
 						if (!(file >> tmp0 >> tmp1 >> tmp2)) {
+							delete_will_load_image(root);
 							print_error_load("can not load types of " << j << " wall on " << i << " world");
 						}
 						wall.type = tmp0;
@@ -189,10 +246,12 @@ namespace pseudo3d_engine {
 						else if (tmp2 == 'f')
 							wall.phys_pass = 0;
 						else {
+							delete_will_load_image(root);
 							print_error_load("don't know phys_pass \"" << tmp2 << "\", \"t\" or \"f\"");
 						}
 
 						if (wall.type > 3) {
+							delete_will_load_image(root);
 							print_error_load("don't know " << (int)wall.type << " type on " << j << " wall, " << i << " world");
 						}
 
@@ -200,6 +259,7 @@ namespace pseudo3d_engine {
 						uchar id_world_portal;
 						if (wall.type == 3) {
 							if (!(file >> id_world_portal >> id_wall_portal)) {
+								delete_will_load_image(root);
 								print_error_load("no id_wall and id_world for portal on " << j << " wall " << i << " world");
 							}
 						}
@@ -209,10 +269,9 @@ namespace pseudo3d_engine {
 							if (!load_color(file, wall.r, wall.g, wall.b, wall.alpha, "wall"))
 								return false;
 						} else if (wall.draw_type == 2) {
-							if (!(file >> wall.id_texture)) {
-								print_error_load("id texture on " << j << " wall on " << i << " world isn't number");
-							}
+							preload_image(file, &wall.id_texture, &root, &count_image_preload);
 						} else { //! add more
+							delete_will_load_image(root);
 							print_error_load("don't know " << (int)wall.draw_type << " draw type on " << j << " wall on " << i << " world");
 						}
 
@@ -236,35 +295,62 @@ namespace pseudo3d_engine {
 				}
 			} else if (str == "images:") {
 				if (flags & 2) {
+					delete_will_load_image(root);
 					print_error_load("images have already been");
 				}
 				flags |= 2;
 
-				unsigned int count;
-				if (!(file >> count)) {
+				if (!(file >> count_image_load)) {
+					delete_will_load_image(root);
 					print_error_load("can not load count of image");
 				}
-				ans.resize_images(count);
+				ans.resize_images(count_image_load);
 
-				for (int i = 0; i < count; ++i) {
+				for (int i = 0; i < count_image_load; ++i) {
 					ignore_comment(file);
 
 					std::string path;
 
 					if (!(file >> path)) {
+						delete_will_load_image(root);
+						ans.resize_images(i);
 						print_error_load("can not load path of " << i << " image");
 					}
 
 					if (!ans.images[i].load(path.c_str())) {
+						delete_will_load_image(root);
+						ans.resize_images(i);
 						print_error_load("error on load " << i << " image from \"" << path << '"');
 					}
 				}
 			} else {
+				delete_will_load_image(root);
 				print_error_load("don't know \"" << str << "\"");
 			}
 		}
 
 		file.close();
+
+		// load image
+		ans.resize_images(count_image_load + count_image_preload);
+
+		while (root->path) {
+			if (!ans.images[count_image_load].load(root->path)) {
+				std::cerr << "\033[31mError load map\033[39m: can not load image on \"" << root->path << '"' << std::endl;
+				ans.resize_images(count_image_load);
+				delete_will_load_image(root);
+				return false;
+			}
+
+			*(root->id) = count_image_load++;
+
+			will_load_image *p = root->next;
+			delete[] root->path;
+			delete root;
+			root = p;
+		}
+
+		delete root;
 
 		return true;
 	}

@@ -10,7 +10,7 @@
 
 using namespace pseudo3d_engine;
 
-int main() {
+int main(int argc, char *argv[]) {
 	/*// debug save/load
 	Universe q;
 	std::cout << load_universe("../data/test.map", q) << std::endl;
@@ -25,6 +25,10 @@ int main() {
 
 	return 0;*/
 
+	const char *map_path = "../data/test.map";
+	if (argc == 2)
+		map_path = argv[1];
+
 	sf::RenderWindow window(sf::VideoMode({800, 600}), "Test pseudo 3D engine", sf::Style::Default);
 
 	if (!init(nullptr)) {
@@ -38,7 +42,7 @@ int main() {
 	MovingObject player({0, 0}, 1.57, 0, 0, 0);
 
 	Universe uni;
-	if (!load_universe("../data/test.map", uni)) {
+	if (!load_universe(map_path, uni)) {
 		window.close();
 		deinit();
 		return 1;
@@ -51,6 +55,8 @@ int main() {
 	sf::Clock clock;
 
 	while (window.isOpen()) {
+		const float d = clock.restart().asSeconds();
+
 		while (const std::optional event = window.pollEvent()) {
 			if (event->is<sf::Event::Closed>()) {
 				window.close();
@@ -70,10 +76,10 @@ int main() {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
 			delta.y -= 1;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
-			player.a += 0.001;
+			player.a += math::pi / 4 * d;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
-			player.a -= 0.001;
-		move(uni, player, math::rotation(math::norm(delta), player.a) / 1000);
+			player.a -= math::pi / 4 * d;
+		move(uni, player, math::rotation(math::norm(delta), player.a) * d);
 
 		window.clear({0, 0, 0});
 
@@ -82,7 +88,7 @@ int main() {
 		window.display();
 
 		if (false) { // FPS
-			std::cout << 1 / clock.restart().asSeconds() << std::endl;
+			std::cout << 1 / d << std::endl;
 		}
 	}
 

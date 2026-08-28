@@ -1,11 +1,15 @@
 #pragma once
 
+#include <cmath>
+
 #define uchar unsigned char
 
 #define EPS 0.000001f
 
 namespace pseudo3d_engine {
 	namespace math {
+		constexpr float pi = acos(-1);
+
 		struct Vec2i {
 			int x, y;
 

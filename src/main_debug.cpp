@@ -48,10 +48,6 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
-	/*uni.worlds[0].up.type = 1;
-	uni.worlds[0].up.draw_type = 0;
-	uni.worlds[0].up.id_texture = 2;*/
-
 	sf::Clock clock;
 
 	while (window.isOpen()) {

@@ -444,6 +444,13 @@ namespace pseudo3d_engine {
 	}
 
 	void Universe::resize_images(unsigned int size) {
+		if (!size) {
+			std::free(images);
+			size_image = size;
+			images = nullptr;
+			return;
+		}
+
 		if (images == nullptr) {
 			images = (draw::Image*)std::malloc(size * sizeof(draw::Image));
 			if (images == nullptr)

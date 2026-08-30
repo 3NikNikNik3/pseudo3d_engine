@@ -7,6 +7,7 @@
 #include <GL/glew.h>
 
 #include "calc_draw.hpp"
+#include "draw.hpp"
 
 using namespace pseudo3d_engine::math;
 
@@ -20,15 +21,15 @@ std::istream& operator>>(std::istream &in, uchar &q) {
 }
 
 namespace pseudo3d_engine {
-	void draw_player_see(draw::Window &window, Universe &uni, MovingObject &player, Vec2i from, Vec2i to, float angl_see) {
+	void draw_player_see(int w, int h, Universe &uni, MovingObject &player, Vec2i from, Vec2i to, float angl_see) {
 		draw::init_buff(to.x - from.x);
 
 		const float a_shift = angl_see / (to.x - from.x), start_a = player.a - angl_see / 2;
 
 		for (int i = 0; i <= to.x - from.x; ++i)
-			calc::draw_line(window, uni, player.id_world, player.pos, Vec2f::from_a(start_a + a_shift * i), i, from.y, to.y - from.y);
+			calc::draw_line(uni, player.id_world, player.pos, Vec2f::from_a(start_a + a_shift * i), i, from.y, to.y - from.y);
 
-		draw::draw(window, uni, from.x, from.y, to.x - from.x, to.y - from.y);
+		draw::draw(w, h, uni, from.x, from.y, to.x - from.x, to.y - from.y);
 	}
 
 	uchar to_uchar(char q) {

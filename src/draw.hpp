@@ -10,10 +10,6 @@ namespace pseudo3d_engine {
 	struct Universe;
 
 	namespace draw {
-		struct Window {
-			sf::RenderWindow *window;
-		};
-
 		struct Image {
 			GLuint texture;
 			int size, x, y;
@@ -38,6 +34,6 @@ namespace pseudo3d_engine {
 
 		void add_none(unsigned int x, uchar depth, float s_old, float from_x, float from_y, float a_x, float a_y, uchar id_world);
 
-		void draw(Window &win, Universe &uni, int x, int y, int size_x, int size_y);
+		void draw(int w, int h, Universe &uni, int x, int y, int size_x, int size_y);
 	}
 }

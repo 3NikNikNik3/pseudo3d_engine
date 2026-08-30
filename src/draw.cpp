@@ -323,7 +323,7 @@ namespace pseudo3d_engine {
 			GLuint x, y, z;
 		};
 
-		inline void draw_wall(Window &win, Universe &uni, int i, int j, int x, int y, int size_x, int size_y, const buffer_draw &buff_now, vec2f *arr_point, vec3i *arr_tri, int len) {
+		inline void draw_wall(int w, int h, Universe &uni, int i, int j, int x, int y, int size_x, int size_y, const buffer_draw &buff_now, vec2f *arr_point, vec3i *arr_tri, int len) {
 			const Wall &wall = uni.worlds[buff_now.id_world].walls[buff_now.id_wall];
 			if (wall.draw_type) {
 				for (int k = 0; k < len; ++k) {
@@ -365,7 +365,7 @@ namespace pseudo3d_engine {
 
 					glUseProgram(prog_color);
 
-					glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+					glUniform2f(size_uni, w, h);
 					if (wall.type == 3)
 						glUniform4f(color, uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].r,
 								   uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].g,
@@ -380,7 +380,7 @@ namespace pseudo3d_engine {
 
 					glUseProgram(prog_image);
 
-					glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+					glUniform2f(size_uni, w, h);
 					if (wall.type == 3)
 						glBindTexture(GL_TEXTURE_2D, uni.images[uni.worlds[buff[i * size + j].id_world].adata[wall.id_add_data].id_texture].texture);
 					else
@@ -393,7 +393,7 @@ namespace pseudo3d_engine {
 			}
 		}
 
-                void draw(Window &win, Universe &uni, int x, int y, int size_x, int size_y) {
+                void draw(int w, int h, Universe &uni, int x, int y, int size_x, int size_y) {
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			glBufferData(GL_ARRAY_BUFFER, get_settings().depth_draw * size_x * 3 * 4 * 10 * sizeof(GLfloat), nullptr, GL_DYNAMIC_DRAW);
 
@@ -497,7 +497,7 @@ namespace pseudo3d_engine {
 
 								glUseProgram(prog_color);
 
-								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform2f(size_uni, w, h);
 								glUniform4f(color, place->r, place->g, place->b, 255);
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 72 * i + j * 24));
@@ -512,7 +512,7 @@ namespace pseudo3d_engine {
 									glUseProgram(prog_floor_inf);
 								}
 
-								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform2f(size_uni, w, h);
 								glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 72 * i + j * 24));
@@ -587,7 +587,7 @@ namespace pseudo3d_engine {
 
 								glUseProgram(prog_color);
 
-								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform2f(size_uni, w, h);
 								glUniform4f(color, place->r, place->g, place->b, 255);
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 48 + size_x * 72 * i + j * 24));
@@ -602,7 +602,7 @@ namespace pseudo3d_engine {
 									glUseProgram(prog_floor_inf);
 								}
 
-								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform2f(size_uni, w, h);
 								glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 48 + size_x * 72 * i + j * 24));
@@ -614,7 +614,7 @@ namespace pseudo3d_engine {
 							const buffer_draw &buff_now = buff[i * size + j];
 
 							// walls
-							draw_wall(win, uni, i, j, x, y, size_x, size_y, buff_now, arr_point, arr_tri, len);
+							draw_wall(w, h, uni, i, j, x, y, size_x, size_y, buff_now, arr_point, arr_tri, len);
 
 							// up-place
 							Place *place = &uni.worlds[buff[i * size + j].id_world].up;
@@ -685,7 +685,7 @@ namespace pseudo3d_engine {
 
 								glUseProgram(prog_color);
 
-								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform2f(size_uni, w, h);
 								glUniform4f(color, place->r, place->g, place->b, 255);
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 72 * i + j * 24));
@@ -700,7 +700,7 @@ namespace pseudo3d_engine {
 									glUseProgram(prog_floor);
 								}
 
-								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform2f(size_uni, w, h);
 								glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 72 * i + j * 24));
@@ -779,7 +779,7 @@ namespace pseudo3d_engine {
 
 								glUseProgram(prog_color);
 
-								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform2f(size_uni, w, h);
 								glUniform4f(color, place->r, place->g, place->b, 255);
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 48 + size_x * 72 * i + j * 24));
@@ -794,7 +794,7 @@ namespace pseudo3d_engine {
 									glUseProgram(prog_floor);
 								}
 
-								glUniform2f(size_uni, win.window->getSize().x, win.window->getSize().y);
+								glUniform2f(size_uni, w, h);
 								glBindTexture(GL_TEXTURE_2D, uni.images[place->id_texture].texture);
 
 								glDrawElements(GL_TRIANGLES, len * 6, GL_UNSIGNED_INT, (void*)(size_x * 48 + size_x * 72 * i + j * 24));

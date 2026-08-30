@@ -88,7 +88,7 @@ namespace pseudo3d_engine {
 			a.y = v.x * tmp_sin + v.y * tmp_cos;
 		}
 
-		void draw_line(draw::Window &window, Universe &uni, uchar id_world, math::Vec2f from, math::Vec2f a, int x, int y, int size_y) {
+		void draw_line(Universe &uni, uchar id_world, math::Vec2f from, math::Vec2f a, int x, int y, int size_y) {
 			node_mem *mem = new node_mem[uni.worlds[id_world].get_size_tree() + 1];
 			uchar i_stack = 0;
 			int i = 0;

@@ -38,7 +38,6 @@ int main(int argc, char *argv[]) {
 
 	window.setView(sf::View(sf::FloatRect({0.f, 0.f}, {(float)window.getSize().x, (float)window.getSize().y})));
 
-	draw::Window win(&window);
 	MovingObject player({0, 0}, 1.57, 0, 0, 0);
 
 	Universe uni;
@@ -79,7 +78,7 @@ int main(int argc, char *argv[]) {
 
 		window.clear({0, 0, 0});
 
-		draw_player_see(win, uni, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 1);
+		draw_player_see(window.getSize().x, window.getSize().y, uni, player, {0, 0}, {(int)window.getSize().x, (int)window.getSize().y}, 1);
 
 		window.display();
 

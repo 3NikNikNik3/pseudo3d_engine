@@ -3,6 +3,7 @@
 #include "calc_draw.hpp"
 
 #include <cstdlib>
+#include <time.h>
 
 namespace pseudo3d_engine {
 	// World

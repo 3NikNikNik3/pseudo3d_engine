@@ -10,9 +10,11 @@ file(DOWNLOAD
 add_subdirectory(src)
 
 if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+	find_package(SFML 3.0 COMPONENTS Graphics)
+
 	add_executable(test_pseudo3d src/main_debug.cpp)
 
-	target_link_libraries(test_pseudo3d src)
+	target_link_libraries(test_pseudo3d src SFML::Window SFML::Graphics)
 else()
 	add_library(pseudo3d_engine SHARED src/main.cpp)
 

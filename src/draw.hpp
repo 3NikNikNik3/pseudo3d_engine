@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
-
 #include <GL/glew.h>
 
 #define uchar unsigned char

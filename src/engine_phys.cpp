@@ -1,6 +1,5 @@
 #include "engine_phys.hpp"
 
-#include "my_math.hpp"
 #include "calc_draw.hpp"
 #include "engine_functions.hpp"
 

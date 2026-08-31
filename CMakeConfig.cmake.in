@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/pseudo3d_engine_targets.cmake")
+
+check_required_components(pseudo3d_engine)

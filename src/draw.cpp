@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 #include "engine_structs.hpp"

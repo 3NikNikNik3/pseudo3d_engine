@@ -1,4 +1,4 @@
-#include "my_math.hpp"
+#include "math.hpp"
 
 namespace pseudo3d_engine {
 	namespace math {

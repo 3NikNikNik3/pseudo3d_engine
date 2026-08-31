@@ -1,6 +1,7 @@
 #include "engine_structs.hpp"
 
 #include "calc_draw.hpp"
+#include "draw.hpp"
 
 #include <cstdlib>
 #include <time.h>

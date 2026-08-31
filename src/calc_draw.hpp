@@ -1,7 +1,6 @@
 #pragma once
 
 #include "engine_structs.hpp"
-#include "my_math.hpp"
 
 namespace pseudo3d_engine {
 	namespace calc {

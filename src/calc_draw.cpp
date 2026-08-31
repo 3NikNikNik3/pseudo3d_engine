@@ -1,5 +1,7 @@
 #include "calc_draw.hpp"
 
+#include "draw.hpp"
+
 namespace pseudo3d_engine {
 	namespace calc {
 		bool interact_with_wall(Wall &wall, float t_start, float t_end, math::Vec2f from, math::Vec2f a, float &s, float &t) {

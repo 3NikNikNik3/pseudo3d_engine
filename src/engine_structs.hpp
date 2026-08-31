@@ -2,10 +2,13 @@
 
 #include <cstdint>
 
-#include "my_math.hpp"
-#include "draw.hpp"
+#include "math.hpp"
 
 namespace pseudo3d_engine {
+	namespace draw {
+		struct Image;
+	}
+
 	struct MovingObject {
 		math::Vec2f pos;
 		float a;

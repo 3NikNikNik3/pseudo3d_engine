@@ -9,7 +9,9 @@ file(DOWNLOAD
 
 set(TYPE_LIB STATIC)
 
-if (CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+set(CMAKE_C_FLAGS_FAST "${CMAKE_C_FLAGS_RELEASE}")
+
+if (NOT CMAKE_BUILD_TYPE)
 	set(TYPE_LIB SHARED)
 endif()
 
@@ -21,6 +23,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "DEBUG")
 	add_executable(test_pseudo3d src/main_debug.cpp)
 
 	target_link_libraries(test_pseudo3d pseudo3d_engine SFML::Window SFML::Graphics)
+elseif (CMAKE_BUILD_TYPE STREQUAL "SIMPLE")
+
 else()
 	include(CMakePackageConfigHelpers)
 
@@ -50,7 +54,6 @@ else()
 	configure_package_config_file(
 		CMakeConfig.cmake.in
 		${CMAKE_CURRENT_BINARY_DIR}/pseudo3d_engineConfig.cmake
-#		INSTALL_DESTINATION lib/cmake/pseudo3d_engine
 		INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
 	)
 

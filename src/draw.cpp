@@ -353,10 +353,10 @@ namespace pseudo3d_engine {
 							img = &uni.images[wall.id_texture];
 						const float delta = 0.5f / img->get_x();
 
-						arr_point[id + 1] = { buff_just_now.t - delta, 0 };
-						arr_point[id + 6] = { buff_just_now.t + delta, 0 };
-						arr_point[id + 11] = { buff_just_now.t + delta, 1 };
-						arr_point[id + 16] = { buff_just_now.t - delta, 1 };
+						arr_point[id + 1] = { buff_just_now.t - delta, 1 };
+						arr_point[id + 6] = { buff_just_now.t + delta, 1 };
+						arr_point[id + 11] = { buff_just_now.t + delta, 0 };
+						arr_point[id + 16] = { buff_just_now.t - delta, 0 };
 					}
 				}
 

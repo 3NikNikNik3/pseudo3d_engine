@@ -51,4 +51,4 @@ That's it! You can now delete the `pseudo3d_engine/` folder.
 
 # Other language
 
-[Russion] (https://github.com/3NikNikNik3/pseudo3d_engine/blob/main/ReadMe_ru.md)
+[Russion](https://github.com/3NikNikNik3/pseudo3d_engine/blob/main/ReadMe_ru.md)
